@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Beauty Salon - Book Now</title>
+<style>
+*{box-sizing:border-box} body{margin:0;background:#0f0a12;color:#fff;font-family:system-ui}
+.top{background:linear-gradient(135deg,#ff6ac1,#8a2be2);padding:26px 16px;text-align:center;border-radius:0 0 28px 28px}
+.top h1{margin:0;font-size:28px}.top p{margin:6px 0 0;opacity:.85;font-weight:600}
+.phone{margin:14px;background:#1c1420;border:1px solid #2a1d33;border-radius:14px;padding:12px}
+.phone input{width:100%;background:#100c14;border:1px solid #2d2140;color:#fff;padding:13px;border-radius:10px;font-size:15px;margin-top:6px}
+.cat{padding:14px}.cat h2{color:#ff7bd1;font-size:16px;margin:18px 0 8px}
+.service{background:#1a1220;border:1px solid #2a1d33;border-radius:16px;padding:12px;display:flex;gap:12px;margin-bottom:10px}
+.pic{width:70px;height:70px;border-radius:12px;background:#251a33;display:flex;align-items:center;justify-content:center;font-size:34px}
+.info{flex:1}.info h3{margin:0;font-size:15px}.info small{color:#9a8aa8;font-size:11px}
+.info b{color:#ff7bd1}
+.qty{display:flex;gap:8px;align-items:center;margin-top:6px}
+.qty button{width:28px;height:28px;border-radius:8px;border:0;background:#22162d;color:#fff}
+.qty.plus{background:#ff6ac1;color:#000;font-weight:bold}
+.time{margin:14px;display:flex;gap:8px}
+.time input,.time select{flex:1;background:#100c14;border:1px solid #2d2140;color:#fff;padding:12px;border-radius:10px}
+.cart{position:fixed;bottom:0;left:0;right:0;background:#1a1220;border-top:1px solid #2a1d33;padding:12px}
+.btn{width:100%;background:#ff6ac1;color:#000;border:0;padding:15px;border-radius:12px;font-weight:900;font-size:16px}
+</style>
+</head>
+<body>
+<div class="top">
+<h1>💅 GLAM STUDIO</h1>
+<p>Book Your Glow • Walk-ins Welcome</p>
+</div>
+
+<div class="phone">
+<label>📱 Your WhatsApp Number</label>
+<input id="custPhone" placeholder="071 234 5678">
+</div>
+
+<div class="time">
+<input id="bookDate" type="date">
+<select id="bookTime">
+<option>09:00</option><option>10:00</option><option>11:00</option>
+<option>12:00</option><option>13:00</option><option>14:00</option>
+<option>15:00</option><option>16:00</option><option>17:00</option>
+</select>
+</div>
+
+<div class="cat" id="menu"></div>
+<div style="height:130px"></div>
+
+<div class="cart">
+<div style="display:flex;justify-content:space-between;margin-bottom:8px"><span id="cartText" style="color:#9a8aa8;font-size:13px">No service selected</span><b id="total">R0</b></div>
+<button class="btn" onclick="checkout()">💬 BOOK ON WHATSAPP</button>
+</div>
+
+<script>
+let menuData = JSON.parse(localStorage.getItem('salon_menu')) || [
+ {id:1,name:'Box Braids',price:350,cat:'Hair',icon:'💇‍♀️',desc:'With extension'},
+ {id:2,name:'Knotless Braids',price:400,cat:'Hair',icon:'✨',desc:'Medium length'},
+ {id:3,name:'Wig Installation',price:250,cat:'Hair',icon:'👑',desc:'Glueless + styling'},
+ {id:4,name:'Relax & Wash',price:120,cat:'Hair',icon:'🧴',desc:'Treatment + wash'},
+ {id:5,name:'Gel Nails',price:180,cat:'Nails',icon:'💅',desc:'Hands + design'},
+ {id:6,name:'Pedicure',price:150,cat:'Nails',icon:'🦶',desc:'Feet + gel'},
+ {id:7,name:'Full Makeup',price:300,cat:'Beauty',icon:'💄',desc:'Face beat + lashes'}
+];
+let orders={};
+function render(){
+ let c=document.getElementById('menu'); c.innerHTML=''; let cats=[...new Set(menuData.map(m=>m.cat))];
+ cats.forEach(cat=>{ c.innerHTML+=`<h2>${cat}</h2>`; menuData.filter(m=>m.cat==cat).forEach(m=>{
+   orders[m.id]=orders[m.id]||0;
+   c.innerHTML+=`<div class="service"><div class="pic">${m.icon}</div><div class="info"><h3>${m.name}</h3><small>${m.desc}</small><br><b>R${m.price}</b><div class="qty"><button onclick="add(${m.id},-1)">-</button><span id="q${m.id}">0</span><button class="plus" onclick="add(${m.id},1)">+</button></div></div></div>`;
+ });});
+}
+function add(id,n){orders[id]=Math.max(0,(orders[id]||0)+n);document.getElementById('q'+id).innerText=orders[id];update();}
+function update(){let t=0,txt='';menuData.forEach(m=>{if(orders[m.id]>0){t+=orders[m.id]*m.price;txt+=orders[m.id]+'x '+m.name+' ';}});document.getElementById('total').innerText='R'+t;document.getElementById('cartText').innerText=txt||'No service selected';}
+function checkout(){
+ let phone=document.getElementById('custPhone').value.trim(); if(!phone){alert('Enter WhatsApp number');return;} if(phone.startsWith('0'))phone='27'+phone.substring(1);
+ let date=document.getElementById('bookDate').value||'Today'; let time=document.getElementById('bookTime').value;
+ let list=[],total=0,msg=''; menuData.forEach(m=>{if(orders[m.id]>0){list.push({name:m.name,qty:orders[m.id],price:m.price}); total+=orders[m.id]*m.price; msg+=orders[m.id]+'x '+m.name+', ';}});
+ if(total==0){alert('Select service');return;}
+ let all=JSON.parse(localStorage.getItem('salon_bookings')||'[]'); all.unshift({id:Date.now(),phone,date,time,items:list,total,timeStamp:new Date().toLocaleString(),status:'new'}); localStorage.setItem('salon_bookings',JSON.stringify(all));
+ let shop=JSON.parse(localStorage.getItem('shop_settings')||'{"wa":"27700000000"}');
+ window.open('https://wa.me/'+shop.wa+'?text='+encodeURIComponent(`Hi Glam Studio 💅 I want to book: ${msg} Date: ${date} ${time} Total R${total} My number: ${phone}`),'_blank');
+}
+render();
+let today=new Date().toISOString().split('T')[0]; document.getElementById('bookDate').value=today; document.getElementById('bookDate').min=today;
+</script>
+</body>
+</html>

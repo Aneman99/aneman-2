@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rent Admin | Aneman</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Space Grotesk;background:#07070a;color:#fff;padding:20px}
+.top{display:flex;justify-content:space-between;max-width:900px;margin:auto}
+.grid{max-width:900px;margin:20px auto;display:grid;grid-template-columns:1fr 1.2fr;gap:14px}
+@media(max-width:800px){.grid{grid-template-columns:1fr}}
+.card{background:#111;border:1px solid #222;border-radius:18px;padding:16px}
+input{width:100%;padding:12px;border-radius:10px;border:1px solid #333;background:#000;color:#fff;margin:6px 0}
+.btn{padding:12px;border-radius:20px;border:none;font-weight:900;cursor:pointer}
+.green{background:#22c55e;color:#000}.dark{background:#222;color:#fff}
+.row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #222}
+</style></head>
+<body>
+<div class="top"><h2>🏠 LANDLORD ADMIN</h2><span style="color:#22c55e">● LIVE</span></div>
+<div id="pinBox" class="card" style="max-width:400px;margin:40px auto;text-align:center">
+<h3>Enter PIN</h3><input id="pin" type="password" placeholder="1234"><button class="btn green" style="width:100%;margin-top:10px" onclick="login()">Enter</button><small style="color:#666">Demo PIN: 1234</small>
+</div>
+
+<div id="admin" style="display:none" class="grid">
+<div>
+<div class="card">
+<h3>Add Tenant</h3>
+<input id="name" placeholder="Tenant Name e.g. Bheki"><input id="room" placeholder="Room No e.g. A3"><input id="rent" placeholder="Rent e.g. 1500" type="number"><input id="due" type="date">
+<button class="btn green" style="width:100%" onclick="add()">Add Tenant +</button>
+</div>
+<div class="card" style="margin-top:12px">
+<h3>This Month</h3>
+<div style="display:flex;gap:8px;margin-top:10px">
+<div style="flex:1;background:#000;padding:12px;border-radius:12px"><small style="color:#888">COLLECTED</small><br><b id="collected" style="font-size:20px;color:#22c55e">R0</b></div>
+<div style="flex:1;background:#000;padding:12px;border-radius:12px"><small style="color:#888">OUTSTANDING</small><br><b id="out" style="font-size:20px;color:#ef4444">R0</b></div>
+</div>
+<button class="btn dark" style="width:100%;margin-top:10px" onclick="resetMonth()">Reset Month (All Unpaid)</button>
+</div>
+</div>
+
+<div class="card">
+<h3>Tenants ( <span id="count">0</span> )</h3>
+<div id="list"></div>
+</div>
+</div>
+
+<script>
+let data=JSON.parse(localStorage.getItem('rent_data')||'[]')
+function login(){if(document.getElementById('pin').value==='1234'){document.getElementById('pinBox').style.display='none';document.getElementById('admin').style.display='grid';render()}else alert('Wrong PIN')}
+function save(){localStorage.setItem('rent_data',JSON.stringify(data))}
+function add(){
+  const name=document.getElementById('name').value, room=document.getElementById('room').value.toUpperCase(), rent=document.getElementById('rent').value, due=document.getElementById('due').value
+  if(!name||!room||!rent) return alert('Fill all')
+  data.push({name,room,rent,due,paid:false}); save(); render();
+  document.getElementById('name').value='';document.getElementById('room').value='';document.getElementById('rent').value=''
+}
+function toggle(i){data[i].paid=!data[i].paid;save();render()}
+function del(i){if(confirm('Delete?')){data.splice(i,1);save();render()}}
+function resetMonth(){if(confirm('Mark all UNPAID for new month?')){data.forEach(d=>d.paid=false);save();render()}}
+function render(){
+  let coll=0,out=0
+  data.forEach(d=>d.paid?coll+=+d.rent:out+=+d.rent)
+  document.getElementById('collected').innerText='R'+coll
+  document.getElementById('out').innerText='R'+out
+  document.getElementById('count').innerText=data.length
+  document.getElementById('list').innerHTML=data.map((d,i)=>`
+    <div class="row">
+      <div><b>${d.room} — ${d.name}</b><br><small style="color:#888">R${d.rent} • Due ${d.due||'—'} • ${d.paid?'<span style=color:#22c55e>PAID</span>':'<span style=color:#ef4444>UNPAID</span>'}</small></div>
+      <div style="display:flex;gap:6px">
+        <button class="btn ${d.paid?'dark':'green'}" style="padding:6px 10px;font-size:11px" onclick="toggle(${i})">${d.paid?'Undo':'Paid'}</button>
+        <a href="https://wa.me/27${d.room}?text=Hi%20${d.name}%20rent%20R${d.rent}%20due%20${d.due}" style="background:#25D366;color:#000;padding:6px 8px;border-radius:10px;font-size:11px;font-weight:900;text-decoration:none">WA</a>
+        <button class="btn dark" style="padding:6px 8px" onclick="del(${i})">X</button>
+      </div>
+    </div>
+  `).join('')||'<p style=color:#666>Empty. Add first tenant.</p>'
+}
+</script>
+</body></html>

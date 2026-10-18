@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My Spaza - Real Store</title>
+<style>
+*{box-sizing:border-box} 
+body{margin:0;background:#ffffff;color:#000000;font-family:system-ui; -webkit-font-smoothing:antialiased}
+.top{background:#111111;color:#ffffff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
+.top h1{margin:0;font-size:18px;font-weight:900;color:#fff} 
+.top small{display:block;color:#ffcc00;font-size:11px;font-weight:800;margin-top:2px}
+.cart-btn{background:#ffcc00;color:#000;padding:10px 16px;border-radius:25px;font-weight:900;font-size:13px;border:0;cursor:pointer}
+.search{padding:12px;background:#f2f2f2;border-bottom:1px solid #ddd}
+.search input{width:100%;padding:14px;border-radius:12px;border:1px solid #ccc;background:#fff;color:#000;font-size:14px}
+.cats{padding:12px;display:flex;gap:8px;overflow:auto;background:#fff;border-bottom:1px solid #eee}
+.cat{white-space:nowrap;padding:10px 16px;border-radius:20px;border:1px solid #ccc;background:#fff;color:#000;font-size:12px;font-weight:800;cursor:pointer}
+.cat.active{background:#111;color:#fff;border-color:#111}
+.grid{padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:12px;padding-bottom:120px;background:#f8f8f8}
+.item{background:#fff;border-radius:16px;padding:14px;border:1px solid #ddd;position:relative;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.05)}
+.item.low{border:2px solid #ff3b30} .item.out{opacity:0.4}
+.badge{position:absolute;top:8px;left:8px;font-size:10px;font-weight:900;padding:4px 8px;border-radius:6px}
+.badge.low{background:#ff3b30;color:#fff} .badge.out{background:#111;color:#fff}
+.item .emoji{font-size:32px;display:block}
+.item h3{margin:8px 0 2px;font-size:14px;color:#000;font-weight:800}
+.item small{color:#666;font-size:11px;display:block}
+.price{margin:6px 0;font-size:14px;font-weight:900;color:#000}
+.item button{width:100%;padding:12px;border-radius:10px;border:0;background:#111;color:#fff;font-weight:900;font-size:12px;cursor:pointer;margin-top:6px}
+.item button:disabled{background:#e0e0e0;color:#999}
+.cart{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;padding:16px;border-radius:20px 20px 0 0;transform:translateY(100%);transition:.3s;max-height:80vh;overflow:auto;z-index:100}
+.cart.open{transform:translateY(0)} 
+.cart-item{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #333;font-size:13px;color:#fff}
+.checkout{width:100%;margin-top:12px;padding:14px;border-radius:12px;border:0;background:#ffcc00;color:#000;font-weight:900;font-size:14px}
+</style>
+</head>
+<body>
+<div class="top"><div><h1>MY SPAZA 🛒</h1><small>OPEN • LIVE STOCK</small></div><button class="cart-btn" onclick="toggleCart()">🛒 <span id="cartCount">0</span> • R<span id="cartTotal">0</span></button></div>
+<div class="search"><input id="search" placeholder="🔍 Search bread, milk, coke..." oninput="render()"></div>
+<div class="cats" id="cats"></div>
+<div class="grid" id="grid"></div>
+
+<div class="cart" id="cart">
+<h3 style="color:#ffcc00">Your Basket</h3>
+<div id="cartItems"></div>
+<button class="checkout" onclick="checkout()">CHECKOUT • Pay at Till</button>
+<button onclick="toggleCart()" style="width:100%;margin-top:8px;background:transparent;color:#999;border:0;font-size:12px">Close</button>
+</div>
+
+<script>
+// FORCE NEW DATA - no undefined
+localStorage.removeItem('aneman_spaza');
+let categories=['All','Bread & Bakery','Drinks','Snacks','Essentials'];
+let products=[
+{id:1,name:'White Bread',price:18,stock:10,emoji:'🍞',cat:'Bread & Bakery'},
+{id:2,name:'Brown Bread',price:20,stock:8,emoji:'🍞',cat:'Bread & Bakery'},
+{id:3,name:'Milk 1L',price:22,stock:2,emoji:'🥛',cat:'Drinks'},
+{id:4,name:'Milk 2L',price:38,stock:5,emoji:'🥛',cat:'Drinks'},
+{id:5,name:'Eggs 6 pack',price:35,stock:8,emoji:'🥚',cat:'Essentials'},
+{id:6,name:'Eggs 18 pack',price:95,stock:3,emoji:'🥚',cat:'Essentials'},
+{id:7,name:'Coke 500ml',price:15,stock:12,emoji:'🥤',cat:'Drinks'},
+{id:8,name:'Coke 2L',price:28,stock:6,emoji:'🥤',cat:'Drinks'},
+{id:9,name:'Fanta 500ml',price:15,stock:9,emoji:'🧃',cat:'Drinks'},
+{id:10,name:'Lays Chips',price:12,stock:1,emoji:'🍟',cat:'Snacks'},
+{id:11,name:'Simba Chips',price:12,stock:15,emoji:'🍟',cat:'Snacks'},
+{id:12,name:'Nik Naks',price:8,stock:20,emoji:'🥨',cat:'Snacks'},
+{id:13,name:'Sugar 1kg',price:28,stock:4,emoji:'',cat:'Essentials'},
+{id:14,name:'Maize Meal 5kg',price:65,stock:7,emoji:'🌽',cat:'Essentials'},
+{id:15,name:'Cooking Oil',price:42,stock:3,emoji:'🫒',cat:'Essentials'},
+{id:16,name:'Rice 2kg',price:45,stock:9,emoji:'🍚',cat:'Essentials'},
+{id:17,name:'Chicken Pack',price:85,stock:2,emoji:'🍗',cat:'Essentials'},
+{id:18,name:'Boerewors 500g',price:55,stock:4,emoji:'🌭',cat:'Essentials'},
+{id:19,name:'Soap Bar',price:14,stock:18,emoji:'🧼',cat:'Essentials'},
+{id:20,name:'Colgate',price:32,stock:6,emoji:'🪥',cat:'Essentials'},
+{id:21,name:'Airtime R20',price:20,stock:50,emoji:'📱',cat:'Essentials'},
+{id:22,name:'Airtime R50',price:50,stock:30,emoji:'📱',cat:'Essentials'},
+{id:23,name:'Tennis Biscuits',price:25,stock:11,emoji:'🍪',cat:'Snacks'},
+{id:24,name:'Juice Box',price:10,stock:14,emoji:'🧃',cat:'Drinks'},
+];
+let sales=JSON.parse(localStorage.getItem('aneman_sales')||'[]');
+let cart=[]; let activeCat='All';
+function save(){localStorage.setItem('aneman_spaza',JSON.stringify(products));localStorage.setItem('aneman_sales',JSON.stringify(sales))}
+
+function renderCats(){
+let c=document.getElementById('cats');c.innerHTML='';
+categories.forEach(cat=>{
+let b=document.createElement('button');b.className='cat'+(cat==activeCat?' active':'');b.textContent=cat;
+b.onclick=()=>{activeCat=cat;renderCats();render()};c.appendChild(b);
+})
+}
+function render(){
+let q=document.getElementById('search').value.toLowerCase();
+let g=document.getElementById('grid');g.innerHTML='';
+let filtered=products.filter(p=>{
+let matchCat=activeCat=='All'||p.cat==activeCat;
+let matchSearch=p.name.toLowerCase().includes(q);
+return matchCat&&matchSearch;
+});
+filtered.forEach(p=>{
+let d=document.createElement('div');d.className='item'+(p.stock==0?' out':p.stock<3?' low':'');
+d.innerHTML=`${p.stock==0?'<span class="badge out">OUT</span>':p.stock<3?'<span class="badge low">LOW ${p.stock}</span>':''}
+<span class="emoji">${p.emoji}</span><h3>${p.name}</h3><small>${p.cat}</small><div class="price">R${p.price} • ${p.stock} left</div>
+<button ${p.stock<=0?'disabled':''} onclick="addToCart(${p.id})">${p.stock<=0?'OUT OF STOCK':'ADD +'}</button>`;
+g.appendChild(d);
+});
+updateCartUI();save();
+}
+function addToCart(id){
+let p=products.find(x=>x.id==id);if(p.stock<=0)return;
+let inCart=cart.find(x=>x.id==id);
+if(inCart){if(inCart.qty>=p.stock)return alert('No more stock left!');inCart.qty++}
+else cart.push({id:p.id,name:p.name,price:p.price,qty:1});
+updateCartUI();
+}
+function updateCartUI(){
+let total=cart.reduce((a,b)=>a+b.price*b.qty,0);
+let count=cart.reduce((a,b)=>a+b.qty,0);
+document.getElementById('cartTotal').textContent=total;
+document.getElementById('cartCount').textContent=count;
+let ci=document.getElementById('cartItems');ci.innerHTML='';
+cart.forEach(c=>{
+let d=document.createElement('div');d.className='cart-item';
+d.innerHTML=`<span>${c.name} x${c.qty}</span><span>R${c.price*c.qty} <button onclick="removeCart(${c.id})" style="background:none;border:0;color:#ff3b30">✕</button></span>`;
+ci.appendChild(d);
+});
+if(cart.length==0)ci.innerHTML='<small style="color:#888">Cart empty — add items</small>';
+}
+function removeCart(id){cart=cart.filter(x=>x.id!=id);updateCartUI()}
+function toggleCart(){document.getElementById('cart').classList.toggle('open')}
+function checkout(){
+if(cart.length==0)return alert('Cart empty');
+cart.forEach(c=>{
+let p=products.find(x=>x.id==c.id);p.stock-=c.qty;
+sales.push({id:Date.now()+c.id,product:c.name+' x'+c.qty,price:c.price*c.qty,type:'sale',date:new Date().toISOString()});
+});
+alert('✅ Sale done: R'+cart.reduce((a,b)=>a+b.price*b.qty,0));cart=[];toggleCart();render();
+}
+renderCats();render();
+</script>
+</body>
+</html>

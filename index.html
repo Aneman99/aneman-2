@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aneman — Systems that run Kasi Businesses</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@600;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',system-ui;background:#06080F;color:#fff;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{text-decoration:none;color:inherit}
+.top{position:sticky;top:0;z-index:99;background:rgba(6,8,15,0.75);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.07);padding:12px 18px;display:flex;justify-content:space-between;align-items:center}
+.logo{font-family:'Space Grotesk';font-weight:700;letter-spacing:1px;font-size:20px}.logo span{color:#22c55e;text-shadow:0 0 12px rgba(34,197,94,0.6)}
+.wa-pill{background:#22c55e;color:#000;padding:9px 16px;border-radius:30px;font-weight:900;font-size:13px;box-shadow:0 0 24px rgba(34,197,94,0.45);transition:.2s}.wa-pill:hover{transform:scale(1.05)}
+.hero{max-width:1150px;margin:auto;padding:54px 20px 26px;display:grid;grid-template-columns:1.15fr 0.85fr;gap:28px;align-items:center}
+@media(max-width:860px){.hero{grid-template-columns:1fr}.h1{font-size:36px!important}}
+.based{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);padding:6px 12px;border-radius:30px;font-size:10px;font-weight:800;letter-spacing:0.8px;color:#22c55e}
+.h1{font-family:'Space Grotesk';font-size:54px;line-height:0.9;letter-spacing:-2px;font-weight:700;margin-top:16px}.h1 em{color:#22c55e;font-style:normal;text-shadow:0 0 30px rgba(34,197,94,0.35)}
+.p{color:#8B96AB;margin:16px 0 22px;font-size:15px;line-height:1.6;max-width:520px}
+.btn{padding:14px 22px;border-radius:30px;font-weight:900;font-size:13px;display:inline-block;transition:.2s}
+.btn-green{background:#22c55e;color:#000;box-shadow:0 8px 24px rgba(34,197,94,0.3)}.btn-green:hover{transform:translateY(-2px)}
+.btn-ghost{border:1px solid rgba(255,255,255,0.15);color:#fff;margin-left:8px;background:rgba(255,255,255,0.03)}.btn-ghost:hover{background:rgba(255,255,255,0.08)}
+.stats{display:flex;gap:10px;margin-top:24px}.stat{flex:1;background:linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:12px 14px}.stat b{font-size:20px;display:block}.stat small{color:#6B7890;font-size:11px}
+.preview{position:relative;background:radial-gradient(80% 80% at 20% 20%,rgba(34,197,94,0.25),transparent 60%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.1);border-radius:26px;padding:18px;overflow:hidden}
+.preview::before{content:'';position:absolute;top:-50%;left:-30%;width:80%;height:200%;background:linear-gradient(120deg,transparent,rgba(255,255,255,0.05),transparent);transform:rotate(15deg);animation:shine 3s infinite}
+@keyframes shine{0%{transform:translateX(-100%) rotate(15deg)}100%{transform:translateX(200%) rotate(15deg)}}
+.wrap{max-width:1150px;margin:auto;padding:18px}
+.section-title{font-family:'Space Grotesk';font-size:28px;margin:44px 0 6px;letter-spacing:-0.5px}.section-sub{color:#6B7890;font-size:13px;margin-bottom:18px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}@media(max-width:860px){.grid3{grid-template-columns:1fr}}
+.card3{background:linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:18px;transition:.3s}
+.card3:hover{transform:translateY(-4px);border-color:rgba(34,197,94,0.4);box-shadow:0 12px 30px rgba(0,0,0,0.4)}
+.card3 .icon{width:36px;height:36px;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:10px;display:grid;place-items:center;font-size:18px}
+.price{margin-top:14px;font-weight:900;font-size:20px}.price small{color:#6B7890;font-size:11px;font-weight:600}
+
+/* LIVE SYSTEMS - NEW DESIGN */
+.live-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}@media(max-width:860px){.live-grid{grid-template-columns:1fr}}
+.live-card{position:relative;background:#FFFFFF;color:#000;border-radius:22px;padding:16px 16px 16px 18px;display:flex;justify-content:space-between;align-items:center;overflow:hidden;transition:.3s;border:1px solid rgba(0,0,0,0.06)}
+.live-card:hover{transform:translateY(-3px) scale(1.01);box-shadow:0 12px 30px rgba(0,0,0,0.18)}
+.live-card.dark{background:linear-gradient(180deg,#161A26,#0F131E);color:#fff;border:1px solid rgba(255,255,255,0.1);box-shadow:0 0 0 1px rgba(34,197,94,0.15),0 10px 40px rgba(0,0,0,0.5)}
+.live-card.dark b{color:#fff}
+.live-card small{font-size:11px}
+.live-card .badge{position:absolute;top:10px;right:10px;background:#22c55e;color:#000;font-size:9px;font-weight:900;padding:4px 8px;border-radius:20px;letter-spacing:0.5px;box-shadow:0 0 12px rgba(34,197,94,0.5)}
+.pulse{width:7px;height:7px;background:#22c55e;border-radius:50%;display:inline-block;box-shadow:0 0 0 0 rgba(34,197,94,0.5);animation:pulse 1.6s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,0.6)}70%{box-shadow:0 0 0 8px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+.view-btn{padding:10px 16px;border-radius:12px;font-weight:900;font-size:12px;display:block;text-align:center;transition:.2s;white-space:nowrap}
+.view-btn:hover{transform:scale(1.05)}
+.admin-row{margin-top:8px;display:flex;gap:6px}
+.admin-btn{padding:6px 12px;border-radius:20px;font-size:10px;font-weight:900;display:inline-block;transition:.2s}
+.admin-btn:hover{transform:translateY(-1px)}
+.cta{margin-top:30px;background:linear-gradient(90deg,#22c55e,#4ADE80);color:#000;border-radius:24px;padding:22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;box-shadow:0 10px 40px rgba(34,197,94,0.3)}
+.cta b{font-family:'Space Grotesk';font-size:22px;display:block;line-height:1}
+footer{border-top:1px solid rgba(255,255,255,0.07);padding:24px;text-align:center;color:#5A677E;font-size:11px;margin-top:40px;padding-bottom:80px}
+footer a{color:#22c55e;text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="top">
+<div class="logo">ANEMAN<span>.SYSTEMS</span></div>
+<a class="wa-pill" href="https://wa.me/27817040126?text=Hi%20Aneman%20I%20want%20a%20SYSTEM">WhatsApp →</a>
+</div>
+
+<div class="hero">
+<div>
+<div class="based"><span class="pulse"></span> BASED IN SA • LIVE SYSTEMS • 99.9% UPTIME</div>
+<h1 class="h1">I build <em>systems</em> that run businesses.</h1>
+<p class="p">Aneman is a Kasi-born systems builder. From Kota shops to clinics — I turn WhatsApp chaos into queue, sales & staff dashboards that work on any phone.</p>
+<a href="#systems" class="btn btn-green">View Live Systems ↓</a>
+<a href="https://wa.me/27817040126" class="btn btn-ghost">Book a Demo</a>
+<div class="stats">
+<div class="stat"><b>4+</b><small>Live Systems</small></div>
+<div class="stat"><b>R680+</b><small>Sales tracked today</small></div>
+<div class="stat"><b>1 day</b><small>Setup time</small></div>
+</div>
+</div>
+<div class="preview">
+<div style="font-size:11px;color:#8B96AB;letter-spacing:0.8px;font-weight:700">LIVE PREVIEW — Clinic System</div>
+<div style="margin-top:14px;background:#080B12;border-radius:14px;padding:14px;border:1px solid rgba(255,255,255,0.07)">
+<div style="display:flex;justify-content:space-between;font-size:12px;font-weight:800"><span>197 SLOTS LEFT</span><span style="color:#22c55e"><span class="pulse"></span> LIVE</span></div>
+<div style="margin-top:12px;height:6px;background:#1A2030;border-radius:10px;overflow:hidden"><div style="width:68%;height:100%;background:linear-gradient(90deg,#22c55e,#4ADE80);border-radius:10px;box-shadow:0 0 10px rgba(34,197,94,0.6)"></div></div>
+<div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);padding:10px;border-radius:12px"><small style="color:#6B7890;font-size:10px">QUEUE</small><br><b>3 patients</b></div>
+<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);padding:10px;border-radius:12px"><small style="color:#6B7890;font-size:10px">SALES</small><br><b>R680</b></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="wrap">
+<div class="section-title">Services — Systems, not pages</div>
+<div class="section-sub">No commission. You own the system. I maintain it on WhatsApp.</div>
+<div class="grid3">
+<div class="card3"><div class="icon">🏥</div><h3 style="margin:10px 0 6px">Clinic & Queue System</h3><p style="color:#8B96AB;font-size:13px;line-height:1.5">Patient books → Reception confirms → Doctor clicks DONE → Owner sees sales.</p><div class="price"><small></small></div></div>
+<div class="card3"><div class="icon">🛒</div><h3 style="margin:10px 0 6px">Spaza Sales & Stock</h3><p style="color:#8B96AB;font-size:13px;line-height:1.5">Stock count, low alert, bulk prices, delivery fee, WhatsApp orders. No more writing in book.</p><div class="price"><small></small></div></div>
+<div class="card3"><div class="icon">✂️</div><h3 style="margin:10px 0 6px">Salon Booking Engine</h3><p style="color:#8B96AB;font-size:13px;line-height:1.5">Price list, gallery, date/time picker, booking to WhatsApp. Client no-show reduced.</p><div class="price"><small></small></div></div>
+</div>
+
+<div class="section-title" id="systems">Live Systems — Test like customer</div>
+<div class="section-sub">All demos working. Admin PINs below each card.</div>
+<div class="live-grid">
+
+<!-- KEEPING ALL YOUR LINKS EXACT -->
+<div class="live-card dark">
+<div><b>🏥 Clinic Queue — FLAGSHIP</b><br><small style="color:#8B96AB">197 slots • 3 done today • Master PIN</small></div>
+<div style="display:flex;flex-direction:column;gap:6px;align-items:end">
+<a href="./demos/index.html" class="view-btn" style="background:#22c55e;color:#000">Patient →</a>
+<a href="./demos/admin.html" class="view-btn" style="background:#fff;color:#000;font-size:11px;padding:7px 12px">Admin 9999 →</a>
+</div>
+<div class="badge">NEW • SYSTEM</div>
+</div>
+
+<div class="live-card">
+<div><b>🔥 Kota Palace</b><br><small style="color:#666">Cart + pics + WhatsApp</small><br><div class="admin-row"><a href="./kota-demo/admin.html" class="admin-btn" style="background:#111;color:#fff">Admin 1234 →</a></div></div>
+<a href="./kota-demo/index.html" class="view-btn" style="background:#111;color:#fff">View →</a>
+</div>
+
+<div class="live-card">
+<div><b>🏪 Spaza System</b><br><small style="color:#666">Stock + low alert</small><br><div class="admin-row"><a href="./spaza-demo/admin.html" class="admin-btn" style="background:#166534;color:#fff">Admin 1234 →</a></div></div>
+<a href="./spaza-demo/index.html" class="view-btn" style="background:#166534;color:#fff">View →</a>
+</div>
+
+<div class="live-card">
+<div><b>✂️ Saloon Booking</b><br><small style="color:#666">Date/time + gallery</small><br><div class="admin-row"><a href="./saloon-demo/admin.html" class="admin-btn" style="background:#000;color:#fff">Admin 1234 →</a></div></div>
+<a href="./saloon-demo/index.html" class="view-btn" style="background:#000;color:#fff">View →</a>
+</div>
+
+<div class="live-card">
+<div><b>🏠 Rent Collection — NEW</b><br><small style="color:#666">R10k/mo potential</small><br><div class="admin-row"><a href="./rent-demo/admin.html" class="admin-btn" style="background:#22c55e;color:#000">Admin 1234 →</a></div></div>
+<a href="./rent-demo/index.html" class="view-btn" style="background:#22c55e;color:#000">View →</a>
+</div>
+
+<!-- STOCKVEL - KEEPING EXACT -->
+<div class="live-card" style="border:1px dashed #00c896; background:#FFFEFB">
+  <div>
+    <div style="font-weight:800;font-size:15px;color:#111">🏦 Stockvel Money Book — COMING SOON</div>
+    <div style="font-size:12px;color:#666;margin:4px 0">Money book + member ledger + slips</div>
+    <div style="display:flex;gap:6px;margin-top:8px">
+      <span style="background:#fff3cd;color:#856404;font-weight:800;font-size:10px;padding:6px 12px;border-radius:20px;border:1px solid #ffe69c">🚧 COMING SOON</span>
+    </div>
+    <div style="margin-top:6px">
+      <span style="background:#eee;color:#999;font-size:11px;padding:6px 14px;border-radius:20px;display:inline-block">Admin 9999 →</span>
+    </div>
+  </div>
+  <span style="background:#e0e0e0;color:#999;font-weight:800;padding:10px 18px;border-radius:12px;font-size:12px">Soon →</span>
+</div>
+
+</div>
+
+<div class="cta">
+<div><b>Ready to systemize your shop?</b><small style="font-weight:600;opacity:0.8">Send us WhatsApp.</small></div>
+<a href="https://wa.me/27817040126?text=Hi%20Aneman%20SYSTEMS%20-%20I%20want%20to%20start" style="background:#000;color:#22c55e;padding:12px 20px;border-radius:30px;font-weight:900">WhatsApp Now →</a>
+</div>
+
+</div>
+
+<footer>© 2026 Aneman Systems — Built by Aneman • <a href="privacy.html">Privacy Policy</a> • <a href="mailto:info@aneman.co.za" style="color:#5A677E">info@aneman.co.za</a></footer>
+</body>
+</html>

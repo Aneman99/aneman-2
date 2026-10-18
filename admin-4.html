@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Salon Owner Admin - Full Control</title>
+<style>
+*{box-sizing:border-box} body{margin:0;background:#0a0610;color:#fff;font-family:system-ui;padding:10px}
+.card{background:#1a1220;border:1px solid #2a1d33;border-radius:14px;padding:12px;margin-bottom:10px}
+input,select{width:100%;padding:11px;border-radius:10px;border:1px solid #332544;background:#100c14;color:#fff;margin:5px 0}
+.btn{padding:9px 13px;border-radius:9px;border:0;font-weight:bold;margin:2px;cursor:pointer}
+.pink{background:#ff6ac1;color:#000}.dark{background:#22162d;color:#fff}.green{background:#25D366;color:#fff}.red{background:#ff3b6e;color:#fff}
+.tabs{display:flex;gap:6px;overflow:auto;margin-bottom:10px}
+.stat{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.stat div{background:#171020;border:1px solid #2a1d33;padding:10px;border-radius:10px;text-align:center}
+.hidden{display:none}
+</style>
+</head>
+<body>
+
+<div id="login" class="card" style="max-width:400px;margin:60px auto">
+<h2 style="color:#ff6ac1">🔒 SALON OWNER ADMIN</h2>
+<input id="pin" type="password" placeholder="PIN default 1234">
+<button class="btn pink" style="width:100%" onclick="login()">LOGIN</button>
+</div>
+
+<div id="panel" class="hidden">
+<div class="tabs">
+<button class="btn pink" onclick="tab('book')">📅 Bookings</button>
+<button class="btn dark" onclick="tab('services')">💅 Services</button>
+<button class="btn dark" onclick="tab('clients')">👩 Clients</button>
+<button class="btn dark" onclick="tab('settings')">⚙️ Settings</button>
+</div>
+
+<div class="stat">
+<div><b id="todayB">0</b><br><small>Today</small></div>
+<div><b id="todayR">R0</b><br><small>Income</small></div>
+<div><b id="clientsN">0</b><br><small>Clients</small></div>
+</div>
+
+<div id="tab-book" class="card">
+<h3>Bookings <button class="btn dark" onclick="load()">Refresh</button> <button class="btn red" onclick="clearAll()">Clear</button></h3>
+<div id="bookList"></div>
+</div>
+
+<div id="tab-services" class="card hidden">
+<h3>Manage Services & Prices</h3>
+<div id="serviceEditor"></div>
+<button class="btn pink" onclick="addService()">+ Add Service</button>
+<button class="btn green" onclick="saveServices()">💾 Save</button>
+</div>
+
+<div id="tab-clients" class="card hidden">
+<h3>Client Numbers</h3>
+<div id="clientsList"></div>
+<button class="btn green" onclick="exportClients()">Export Numbers</button>
+</div>
+
+<div id="tab-settings" class="card hidden">
+<h3>Shop Settings</h3>
+<label>Shop WhatsApp (where bookings go)</label>
+<input id="shopWa" placeholder="27700000000">
+<label>Change PIN</label>
+<input id="newPin" placeholder="New PIN">
+<button class="btn green" style="width:100%" onclick="saveSettings()">Save Settings</button>
+</div>
+</div>
+
+<script>
+let pin=localStorage.getItem('admin_pin')||'1234';
+let settings=JSON.parse(localStorage.getItem('shop_settings')||'{"wa":"27700000000"}');
+function login(){if(document.getElementById('pin').value==pin){document.getElementById('login').classList.add('hidden');document.getElementById('panel').classList.remove('hidden');document.getElementById('shopWa').value=settings.wa;load();}else alert('Wrong PIN');}
+function tab(t){document.querySelectorAll('[id^="tab-"]').forEach(e=>e.classList.add('hidden'));document.getElementById('tab-'+t).classList.remove('hidden');if(t=='services')renderServices();if(t=='clients')renderClients();}
+function load(){
+ let all=JSON.parse(localStorage.getItem('salon_bookings')||'[]');
+ document.getElementById('todayB').innerText=all.length;
+ document.getElementById('todayR').innerText='R'+all.reduce((s,o)=>s+o.total,0);
+ document.getElementById('clientsN').innerText=[...new Set(all.map(o=>o.phone))].length;
+ let list=document.getElementById('bookList');list.innerHTML=all.length?'':'No bookings';
+ all.forEach(b=>{
+  let col=b.status=='new'?'#ff6ac1':b.status=='confirmed'?'#8a2be2':b.status=='done'?'#25D366':'#666';
+  list.innerHTML+=`<div class="card" style="border-left:5px solid ${col}"><b>#${String(b.id).slice(-4)} ${b.status.toUpperCase()}</b><br>📱 ${b.phone} <a href="tel:${b.phone}" style="color:#25D366">Call</a><br>📅 ${b.date} ${b.time} • ${b.timeStamp}<br>💅 ${b.items.map(i=>i.qty+'x '+i.name).join(', ')}<br>💰 R${b.total}<br><br>
+  <select onchange="upStatus(${b.id},this.value)"><option ${b.status=='new'?'selected':''} value="new">New</option><option ${b.status=='confirmed'?'selected':''} value="confirmed">Confirmed</option><option ${b.status=='done'?'selected':''} value="done">Done</option></select>
+  <button class="btn green" onclick="alertClient(${b.id})">WhatsApp</button><button class="btn red" onclick="del(${b.id})">Delete</button></div>`;
+ });
+}
+function upStatus(id,s){let all=JSON.parse(localStorage.getItem('salon_bookings')||'[]');all=all.map(o=>o.id==id?{...o,status:s}:o);localStorage.setItem('salon_bookings',JSON.stringify(all));load();}
+function alertClient(id){let all=JSON.parse(localStorage.getItem('salon_bookings')||'[]');let b=all.find(o=>o.id==id);let msgs={new:'Hi 💅 Glam Studio: Booking received!',confirmed:'✅ Confirmed! See you at '+b.date+' '+b.time,done:'🙏 Thanks for coming!'};window.open('https://wa.me/'+b.phone+'?text='+encodeURIComponent(msgs[b.status]+' Total R'+b.total),'_blank');}
+function del(id){if(confirm('Delete?')){let all=JSON.parse(localStorage.getItem('salon_bookings')||'[]');localStorage.setItem('salon_bookings',JSON.stringify(all.filter(o=>o.id!=id)));load();}}
+function clearAll(){if(confirm('Clear all?')){localStorage.removeItem('salon_bookings');load();}}
+function getServices(){return JSON.parse(localStorage.getItem('salon_menu'))||[];}
+function renderServices(){let m=getServices();let d=document.getElementById('serviceEditor');d.innerHTML='';m.forEach((s,i)=>{d.innerHTML+=`<div class="card"><input id="n${i}" value="${s.name}"><input id="p${i}" type="number" value="${s.price}"><input id="c${i}" value="${s.cat}"><input id="d${i}" value="${s.desc}"><button class="btn red" onclick="remS(${i})">Remove</button></div>`;});}
+function addService(){let m=getServices();m.push({id:Date.now(),name:'New Service',price:100,cat:'Hair',icon:'💅',desc:'Desc'});localStorage.setItem('salon_menu',JSON.stringify(m));renderServices();}
+function remS(i){let m=getServices();m.splice(i,1);localStorage.setItem('salon_menu',JSON.stringify(m));renderServices();}
+function saveServices(){let d=document.getElementById('serviceEditor');let m=[];for(let i=0;i<d.children.length;i++){m.push({id:i+1,name:document.getElementById('n'+i).value,price:parseInt(document.getElementById('p'+i).value),cat:document.getElementById('c'+i).value,desc:document.getElementById('d'+i).value,icon:'💅'});}localStorage.setItem('salon_menu',JSON.stringify(m));alert('Saved! Customer menu updated');}
+function renderClients(){let all=JSON.parse(localStorage.getItem('salon_bookings')||'[]');let uniq=[...new Map(all.map(o=>[o.phone,o])).values()];let l=document.getElementById('clientsList');l.innerHTML='';uniq.forEach(o=>{l.innerHTML+=`<div class="card">📱 ${o.phone} - R${o.total} <button class="btn green" onclick="window.open('https://wa.me/${o.phone}') }">Chat</button></div>`;});}
+function exportClients(){let all=JSON.parse(localStorage.getItem('salon_bookings')||'[]');prompt('Clients:',[...new Set(all.map(o=>o.phone))].join(', '));}
+function saveSettings(){settings.wa=document.getElementById('shopWa').value;localStorage.setItem('shop_settings',JSON.stringify(settings));let np=document.getElementById('newPin').value.trim();if(np){localStorage.setItem('admin_pin',np);pin=np;}alert('Saved');}
+setInterval(()=>{if(!document.getElementById('panel').classList.contains('hidden'))load();},5000);
+</script>
+</body>
+</html>

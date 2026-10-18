@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Full Kota Admin</title>
+<style>
+*{box-sizing:border-box} body{margin:0;background:#070707;color:#fff;font-family:system-ui;padding:10px}
+.card{background:#151515;border-radius:14px;padding:14px;margin-bottom:10px;border:1px solid #222}
+input,select{width:100%;padding:12px;border-radius:10px;border:1px solid #333;background:#0f0f0f;color:#fff;margin:5px 0}
+.btn{padding:10px 14px;border-radius:10px;border:0;font-weight:bold;cursor:pointer;margin:2px}
+.green{background:#25D366;color:#fff}.yellow{background:#ffcc00;color:#000}.red{background:#ff3333;color:#fff}.dark{background:#222;color:#fff}
+.tabs{display:flex;gap:6px;margin-bottom:10px;overflow:auto}
+.tabs button{flex:1;white-space:nowrap}
+#login{max-width:400px;margin:50px auto}
+.hidden{display:none}
+.stat{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.stat div{background:#111;padding:12px;border-radius:10px;text-align:center;border:1px solid #222}
+</style>
+</head>
+<body>
+
+<div id="login" class="card">
+<h2 style="color:#ffcc00">🔒 KOTA ADMIN</h2>
+<input id="pin" type="password" placeholder="PIN default 1234">
+<button class="btn yellow" style="width:100%" onclick="login()">LOGIN</button>
+</div>
+
+<div id="panel" class="hidden">
+
+<div class="tabs">
+<button class="btn yellow" onclick="tab('orders')">📦 Orders</button>
+<button class="btn dark" onclick="tab('menu')">🍔 Menu</button>
+<button class="btn dark" onclick="tab('customers')">📱 Customers</button>
+<button class="btn dark" onclick="tab('settings')">⚙️ Settings</button>
+</div>
+
+<div class="stat">
+<div><b id="todayOrders">0</b><br><small>Today Orders</small></div>
+<div><b id="todaySales">R0</b><br><small>Today Sales</small></div>
+<div><b id="totalCustomers">0</b><br><small>Customers</small></div>
+</div>
+
+<!-- ORDERS -->
+<div id="tab-orders" class="card">
+<h3>Live Orders <button class="btn dark" onclick="loadAll()">Refresh</button> <button class="btn red" onclick="clearAll()">Clear All</button></h3>
+<div id="ordersList"></div>
+</div>
+
+<!-- MENU EDITOR -->
+<div id="tab-menu" class="card hidden">
+<h3>🍔 Edit Menu & Prices</h3>
+<div id="menuEditor"></div>
+<button class="btn yellow" onclick="addNewItem()">+ Add New Kota</button>
+<button class="btn green" onclick="saveMenu()">💾 Save Menu</button>
+<p style="color:#888;font-size:12px">This changes what customers see in index.html instantly</p>
+</div>
+
+<!-- CUSTOMERS -->
+<div id="tab-customers" class="card hidden">
+<h3>📱 Customer Numbers</h3>
+<div id="customersList"></div>
+<button class="btn green" onclick="exportCustomers()">📥 Export Numbers</button>
+</div>
+
+<!-- SETTINGS -->
+<div id="tab-settings" class="card hidden">
+<h3>⚙️ Shop Settings</h3>
+<label>Your Shop WhatsApp (where orders go)</label>
+<input id="shopWa" placeholder="27700000000">
+<label>Change Admin PIN</label>
+<input id="newPin" placeholder="New PIN">
+<label>Shop Name</label>
+<input id="shopName" placeholder="Kota Palace">
+<button class="btn green" style="width:100%" onclick="saveSettings()">Save Settings</button>
+<hr>
+<button class="btn red" onclick="resetEverything()">⚠️ RESET EVERYTHING</button>
+</div>
+
+</div>
+
+<script>
+let currentPin = localStorage.getItem('admin_pin')||'1234';
+let shopSettings = JSON.parse(localStorage.getItem('shop_settings')||'{"wa":"27700000000","name":"Kota Palace"}');
+
+function login(){
+ if(document.getElementById('pin').value==currentPin){
+   document.getElementById('login').classList.add('hidden');
+   document.getElementById('panel').classList.remove('hidden');
+   document.getElementById('shopWa').value=shopSettings.wa;
+   document.getElementById('shopName').value=shopSettings.name;
+   loadAll();
+ } else alert('Wrong PIN');
+}
+
+function tab(t){
+ document.querySelectorAll('[id^="tab-"]').forEach(e=>e.classList.add('hidden'));
+ document.getElementById('tab-'+t).classList.remove('hidden');
+ if(t=='menu') renderMenuEditor();
+ if(t=='customers') renderCustomers();
+}
+
+function loadAll(){
+ let all=JSON.parse(localStorage.getItem('kota_orders')||'[]');
+ let today = new Date().toDateString();
+ let todayOrders = all.filter(o=> new Date(o.id).toDateString()==today);
+ let sales = todayOrders.reduce((s,o)=>s+o.total,0);
+ document.getElementById('todayOrders').innerText=todayOrders.length;
+ document.getElementById('todaySales').innerText='R'+sales;
+ document.getElementById('totalCustomers').innerText=[...new Set(all.map(o=>o.phone))].length;
+
+ let list=document.getElementById('ordersList'); list.innerHTML='';
+ if(all.length==0){list.innerHTML='No orders';return;}
+ all.forEach(o=>{
+   let col = o.status=='new'?'#ffcc00':o.status=='prep'?'#ff8800':o.status=='ready'?'#25D366':'#666';
+   list.innerHTML+=`<div class="card" style="border-left:5px solid ${col}">
+   <b>#${String(o.id).slice(-4)} ${o.status.toUpperCase()}</b><br>
+   📱 <b>${o.phone}</b> <a href="tel:${o.phone}" style="color:#25D366">Call</a><br>
+   🕒 ${o.time}<br>
+   🍔 ${o.items.map(i=>i.qty+'x '+i.name).join(', ')}<br>
+   💰 R${o.total}<br><br>
+   <select onchange="updateStatus(${o.id},this.value)">
+   <option ${o.status=='new'?'selected':''} value="new">New</option>
+   <option ${o.status=='prep'?'selected':''} value="prep">Preparing</option>
+   <option ${o.status=='ready'?'selected':''} value="ready">Ready</option>
+   <option ${o.status=='done'?'selected':''} value="done">Done</option>
+   </select>
+   <button class="btn green" onclick="alertCustomer(${o.id})">WhatsApp Alert</button>
+   <button class="btn red" onclick="deleteOrder(${o.id})">Delete</button>
+   </div>`;
+ });
+}
+
+function updateStatus(id,st){
+ let all=JSON.parse(localStorage.getItem('kota_orders')||'[]');
+ all=all.map(o=>o.id==id?{...o,status:st}:o); localStorage.setItem('kota_orders',JSON.stringify(all)); loadAll();
+ if(confirm('Alert customer that status is '+st+'?')) alertCustomer(id);
+}
+function alertCustomer(id){
+ let all=JSON.parse(localStorage.getItem('kota_orders')||'[]');
+ let o=all.find(x=>x.id==id); if(!o) return;
+ let msgs={new:'📦 Kota Palace: Order received! Starting soon',prep:'🔥 Your kota is PREPARING! 10 mins',ready:'✅ READY for collection! Come now!',done:'🙏 Thanks! Come again!'};
+ window.open('https://wa.me/'+o.phone+'?text='+encodeURIComponent(msgs[o.status]+` #${String(id).slice(-4)} R${o.total}`),'_blank');
+}
+function deleteOrder(id){ if(confirm('Delete order?')){ let all=JSON.parse(localStorage.getItem('kota_orders')||'[]'); localStorage.setItem('kota_orders',JSON.stringify(all.filter(o=>o.id!=id))); loadAll(); }}
+function clearAll(){ if(confirm('Delete ALL orders?')){ localStorage.removeItem('kota_orders'); loadAll(); }}
+
+// MENU
+let defaultMenu = [
+ {id:1,name:'Quarter Kota',price:35,desc:'Chips, polony, cheese'},
+ {id:2,name:'Half Kota',price:50,desc:'Chips, polony, vienna, cheese'},
+ {id:3,name:'Full Kota',price:65,desc:'Everything + burger + egg'},
+ {id:4,name:'Double Cheese',price:75,desc:'Double meat double cheese'}
+];
+function getMenu(){ return JSON.parse(localStorage.getItem('kota_menu')||JSON.stringify(defaultMenu)); }
+function renderMenuEditor(){
+ let menu=getMenu(); let div=document.getElementById('menuEditor'); div.innerHTML='';
+ menu.forEach((m,i)=>{
+   div.innerHTML+=`<div class="card"><input id="name${i}" value="${m.name}"><input id="price${i}" type="number" value="${m.price}"><input id="desc${i}" value="${m.desc}"><button class="btn red" onclick="removeItem(${i})">Remove</button></div>`;
+ });
+}
+function addNewItem(){ let menu=getMenu(); menu.push({id:Date.now(),name:'New Kota',price:30,desc:'Description'}); localStorage.setItem('kota_menu',JSON.stringify(menu)); renderMenuEditor(); }
+function removeItem(i){ let menu=getMenu(); menu.splice(i,1); localStorage.setItem('kota_menu',JSON.stringify(menu)); renderMenuEditor(); }
+function saveMenu(){
+ let div=document.getElementById('menuEditor'); let count=div.children.length; let menu=[];
+ for(let i=0;i<count;i++){ menu.push({id:i+1,name:document.getElementById('name'+i).value,price:parseInt(document.getElementById('price'+i).value),desc:document.getElementById('desc'+i).value}); }
+ localStorage.setItem('kota_menu',JSON.stringify(menu)); alert('Menu saved! Customers will see new menu & prices');
+}
+
+function renderCustomers(){
+ let all=JSON.parse(localStorage.getItem('kota_orders')||'[]'); let uniq=[...new Map(all.map(o=>[o.phone,o])).values()];
+ let list=document.getElementById('customersList'); list.innerHTML='';
+ uniq.forEach(o=>{ list.innerHTML+=`<div class="card">📱 ${o.phone} - Last order R${o.total} <button class="btn green" onclick="window.open('https://wa.me/${o.phone}','_blank')">Chat</button></div>`; });
+}
+function exportCustomers(){
+ let all=JSON.parse(localStorage.getItem('kota_orders')||'[]'); let phones=[...new Set(all.map(o=>o.phone))].join(', ');
+ prompt('Copy all customer numbers:',phones);
+}
+function saveSettings(){
+ shopSettings.wa=document.getElementById('shopWa').value;
+ shopSettings.name=document.getElementById('shopName').value;
+ localStorage.setItem('shop_settings',JSON.stringify(shopSettings));
+ let pin=document.getElementById('newPin').value.trim();
+ if(pin){ localStorage.setItem('admin_pin',pin); currentPin=pin; alert('PIN changed to '+pin); }
+ alert('Settings saved!');
+}
+function resetEverything(){ if(confirm('RESET menu + orders + settings?')){ localStorage.clear(); location.reload(); }}
+
+setInterval(()=>{ if(!document.getElementById('panel').classList.contains('hidden')) loadAll(); },5000);
+</script>
+</body>
+</html>

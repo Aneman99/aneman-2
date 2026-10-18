@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Owner Admin - Full Control</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f8f8f8;color:#000;font-family:system-ui}
+.login{height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:#111;color:#fff}
+.login input{background:#222;border:1px solid #444;color:#fff;padding:16px 20px;border-radius:12px;font-size:20px;text-align:center;letter-spacing:8px;width:180px}
+.btn{padding:10px 16px;border-radius:10px;border:0;font-weight:900;font-size:12px;cursor:pointer}
+.btn-y{background:#ffcc00;color:#000} .btn-r{background:#ff3b30;color:#fff} .btn-b{background:#111;color:#fff} .btn-g{background:#fff;color:#000;border:1px solid #ddd}
+.hidden{display:none}
+.top{padding:14px 16px;background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:20}
+.top b{font-size:16px} .top span{background:#ffcc00;color:#000;padding:6px 12px;border-radius:20px;font-weight:900;font-size:13px}
+.nav{padding:10px 12px;display:flex;gap:8px;overflow:auto;background:#fff;border-bottom:1px solid #eee;position:sticky;top:56px;z-index:10}
+.nav button{white-space:nowrap;padding:10px 16px;border-radius:20px;border:1px solid #ddd;background:#fff;color:#000;font-weight:800;font-size:12px}
+.nav button.active{background:#111;color:#fff}
+.card{background:#fff;border:1px solid #ddd;border-radius:16px;padding:14px;margin:12px;box-shadow:0 2px 10px rgba(0,0,0,0.04)}
+.card h3{margin:0 0 12px;font-size:13px;letter-spacing:1px;font-weight:900}
+.grid2{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.stat{background:#f6f6f7;border:1px solid #eee;border-radius:12px;padding:10px;text-align:center}
+.stat b{font-size:20px;display:block} .stat span{font-size:10px;color:#888;font-weight:800}
+table{width:100%;border-collapse:collapse;font-size:12px} th{color:#888;text-align:left;padding:8px 6px;font-size:10px;letter-spacing:1px} td{padding:10px 6px;border-top:1px solid #eee}
+input.small{background:#f6f6f7;border:1px solid #ddd;padding:10px;border-radius:8px;width:100%;font-size:13px;color:#000}
+.row{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.badge{padding:3px 6px;border-radius:5px;font-size:10px;font-weight:900} .low{background:#ff3b30;color:#fff} .ok{background:#e6f7e6;color:#0a7a0a}
+</style>
+</head>
+<body>
+
+<div class="login" id="loginBox">
+<h1>🔒 OWNER ADMIN</h1>
+<input id="pinInput" type="password" maxlength="4" placeholder="PIN">
+<button class="btn btn-y" onclick="unlock()" style="padding:14px 30px;font-size:14px">UNLOCK</button>
+<small style="color:#888">Default PIN: 1234</small>
+<small style="color:#555;margin-top:20px">This page is separate from customers</small>
+</div>
+
+<div class="hidden" id="adminBox">
+<div class="top"><b>OWNER CONTROL PANEL</b><div><span id="todayTotal">R0</span> <a href="./index.html" style="color:#ffcc00;font-size:11px;text-decoration:none;margin-left:10px">VIEW STORE →</a></div></div>
+
+<div class="nav" id="nav">
+<button class="active" onclick="switchTab('stock',this)">📦 STOCK COUNT</button>
+<button onclick="switchTab('sales',this)">💰 SALES REPORT</button>
+<button onclick="switchTab('sell',this)">🛒 BUY & SELL</button>
+<button onclick="switchTab('refund',this)">↩️ REFUND</button>
+<button onclick="switchTab('manage',this)">⚙️ ADD/DELETE</button>
+</div>
+
+<!-- STATS -->
+<div class="card">
+<div class="grid2">
+<div class="stat"><b id="sTotal">0</b><span>TOTAL PRODUCTS</span></div>
+<div class="stat"><b id="sLow" style="color:#ff3b30">0</b><span>LOW STOCK</span></div>
+<div class="stat"><b id="sItems">0</b><span>TOTAL UNITS</span></div>
+</div>
+</div>
+
+<!-- STOCK COUNT TAB -->
+<div class="card" id="tab-stock">
+<h3>📦 STOCK COUNT — FULL CONTROL</h3>
+<table id="stockTable"></table>
+</div>
+
+<!-- SALES REPORT TAB -->
+<div class="card hidden" id="tab-sales">
+<h3>💰 SALES REPORT</h3>
+<div style="display:flex;gap:8px;margin-bottom:12px">
+<button class="btn btn-g" onclick="filterSales('today')">Today</button>
+<button class="btn btn-g" onclick="filterSales('all')">All Time</button>
+<button class="btn btn-r" onclick="clearSales()">Clear All Sales</button>
+</div>
+<div style="font-size:24px;font-weight:900;margin-bottom:10px">Total: <span id="salesTotal" style="color:#111">R0</span> <small id="salesCount" style="font-size:12px;color:#888"></small></div>
+<table id="salesTable"></table>
+</div>
+
+<!-- BUY & SELL TAB -->
+<div class="card hidden" id="tab-sell">
+<h3>🛒 BUY (ADD STOCK) & SELL (REMOVE STOCK)</h3>
+<p style="font-size:11px;color:#888">Use this to manually sell when offline or add stock when delivery arrives</p>
+<table id="sellTable"></table>
+</div>
+
+<!-- REFUND TAB -->
+<div class="card hidden" id="tab-refund">
+<h3>↩️ REFUND — RETURN STOCK & MONEY</h3>
+<p style="font-size:11px;color:#888">Click refund to add stock back and subtract from sales</p>
+<table id="refundTable"></table>
+</div>
+
+<!-- ADD/DELETE TAB -->
+<div class="card hidden" id="tab-manage">
+<h3>⚙️ ADD NEW PRODUCT</h3>
+<div class="row">
+<input id="newName" class="small" placeholder="Name e.g. Bread" style="flex:2">
+<input id="newPrice" type="number" class="small" placeholder="Price" style="flex:1">
+<input id="newStock" type="number" class="small" placeholder="Stock" style="flex:1">
+<input id="newEmoji" class="small" placeholder="Emoji 🍞" style="flex:0.5">
+<input id="newCat" class="small" placeholder="Category" style="flex:1">
+</div>
+<button class="btn btn-y" onclick="addProduct()" style="width:100%;padding:12px">ADD PRODUCT</button>
+
+<h3 style="margin-top:20px">🗑️ DELETE PRODUCTS</h3>
+<table id="manageTable"></table>
+
+<h3 style="margin-top:20px">🔑 CHANGE PIN</h3>
+<div class="row"><input id="newPin" type="password" maxlength="4" class="small" placeholder="New 4-digit PIN"><button class="btn btn-b" onclick="changePin()">Save PIN</button></div>
+</div>
+
+</div>
+
+<script>
+let PIN = localStorage.getItem('owner_pin') || '1234';
+function unlock(){
+ if(document.getElementById('pinInput').value==PIN){
+  document.getElementById('loginBox').classList.add('hidden');
+  document.getElementById('adminBox').classList.remove('hidden');
+  init();
+ } else alert('Wrong PIN - try 1234');
+}
+
+let products = JSON.parse(localStorage.getItem('aneman_spaza')||'null');
+if(!products){
+ products=[
+ {id:1,name:'White Bread',price:18,stock:10,emoji:'🍞',cat:'Bread & Bakery'},
+ {id:2,name:'Milk 1L',price:22,stock:2,emoji:'🥛',cat:'Drinks'},
+ {id:3,name:'Eggs 6 pack',price:35,stock:8,emoji:'🥚',cat:'Essentials'},
+ {id:4,name:'Coke 500ml',price:15,stock:12,emoji:'🥤',cat:'Drinks'},
+ ];
+}
+let sales = JSON.parse(localStorage.getItem('aneman_sales')||'[]');
+let salesFilter='today';
+
+function save(){localStorage.setItem('aneman_spaza',JSON.stringify(products));localStorage.setItem('aneman_sales',JSON.stringify(sales)); renderAll();}
+
+function switchTab(name,btn){
+ document.querySelectorAll('[id^="tab-"]').forEach(t=>t.classList.add('hidden'));
+ document.getElementById('tab-'+name).classList.remove('hidden');
+ document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+ btn.classList.add('active');
+}
+
+function init(){renderAll();}
+
+function renderAll(){
+ let low = products.filter(p=>p.stock<3).length;
+ let totalUnits = products.reduce((a,b)=>a+b.stock,0);
+ document.getElementById('sTotal').textContent=products.length;
+ document.getElementById('sLow').textContent=low;
+ document.getElementById('sItems').textContent=totalUnits;
+ let todaySales = sales.filter(s=>new Date(s.date).toDateString()==new Date().toDateString()).reduce((a,b)=>a+(b.type=='sale'?b.price:-b.price),0);
+ document.getElementById('todayTotal').textContent='Today R'+todaySales;
+
+ // STOCK TABLE
+ let st=document.getElementById('stockTable');
+ st.innerHTML='<tr><th>Item</th><th>Price</th><th>Stock</th><th>Status</th><th>Control</th></tr>';
+ products.forEach(p=>{
+  let tr=document.createElement('tr');
+  tr.innerHTML=`<td><b>${p.emoji}</b> ${p.name}<br><small style="color:#888">${p.cat}</small></td><td>R${p.price}</td><td><b>${p.stock}</b></td><td><span class="badge ${p.stock<3?'low':'ok'}">${p.stock==0?'OUT':p.stock<3?'LOW':'OK'}</span></td><td><button class="btn btn-g" onclick="adj(${p.id},1)">+1</button> <button class="btn btn-g" onclick="adj(${p.id},-1)">-1</button> <button class="btn btn-g" onclick="adj(${p.id},10)">+10</button></td>`;
+  st.appendChild(tr);
+ });
+
+ // SELL TABLE (Buy & Sell)
+ let sellT=document.getElementById('sellTable');
+ sellT.innerHTML='<tr><th>Item</th><th>Stock</th><th>Buy/Sell</th></tr>';
+ products.forEach(p=>{
+  let tr=document.createElement('tr');
+  tr.innerHTML=`<td>${p.emoji} ${p.name}</td><td>${p.stock}</td><td><button class="btn btn-y" onclick="sellProd(${p.id})">SELL -1 (R${p.price})</button> <button class="btn btn-b" onclick="buyProd(${p.id})">BUY +1</button></td>`;
+  sellT.appendChild(tr);
+ });
+
+ // SALES REPORT
+ let filtered = salesFilter=='today'?sales.filter(s=>new Date(s.date).toDateString()==new Date().toDateString()):sales;
+ let total = filtered.reduce((a,b)=>a+(b.type=='sale'?b.price:-b.price),0);
+ document.getElementById('salesTotal').textContent='R'+total;
+ document.getElementById('salesCount').textContent='('+filtered.length+' transactions)';
+ let sTable=document.getElementById('salesTable');
+ sTable.innerHTML='<tr><th>Time</th><th>Item</th><th>Type</th><th>Amount</th></tr>';
+ filtered.slice(-50).reverse().forEach(s=>{
+  let tr=document.createElement('tr');
+  tr.innerHTML=`<td>${new Date(s.date).toLocaleString()}</td><td>${s.product}</td><td style="color:${s.type=='sale'?'#0a7a0a':'#ff3b30'};font-weight:900">${s.type.toUpperCase()}</td><td>R${s.price}</td>`;
+  sTable.appendChild(tr);
+ });
+
+ // REFUND TABLE
+ let rTable=document.getElementById('refundTable');
+ rTable.innerHTML='<tr><th>Sale</th><th>Refund Action</th></tr>';
+ filtered.filter(s=>s.type=='sale').slice(-20).reverse().forEach(s=>{
+  let tr=document.createElement('tr');
+  tr.innerHTML=`<td>${s.product} - R${s.price}<br><small>${new Date(s.date).toLocaleString()}</small></td><td><button class="btn btn-r" onclick="doRefund(${s.id})">REFUND</button></td>`;
+  rTable.appendChild(tr);
+ });
+ if(filtered.filter(s=>s.type=='sale').length==0){rTable.innerHTML+='<tr><td colspan="2" style="color:#888">No sales to refund</td></tr>'}
+
+ // MANAGE TABLE
+ let mTable=document.getElementById('manageTable');
+ mTable.innerHTML='<tr><th>Item</th><th>Price/Stock</th><th>Delete</th></tr>';
+ products.forEach(p=>{
+  let tr=document.createElement('tr');
+  tr.innerHTML=`<td>${p.emoji} ${p.name}</td><td>R${p.price} / ${p.stock}</td><td><button class="btn btn-r" onclick="delProd(${p.id})">DELETE</button></td>`;
+  mTable.appendChild(tr);
+ });
+}
+
+function adj(id,delta){let p=products.find(x=>x.id==id);p.stock+=delta;if(p.stock<0)p.stock=0;save();}
+function sellProd(id){let p=products.find(x=>x.id==id);if(p.stock<=0)return alert('Out of stock');p.stock--;sales.push({id:Date.now(),product:p.name,type:'sale',price:p.price,date:new Date().toISOString()});save();}
+function buyProd(id){let p=products.find(x=>x.id==id);p.stock++;sales.push({id:Date.now(),product:p.name+' (STOCK IN)',type:'buy',price:p.price,date:new Date().toISOString()});save();}
+function doRefund(saleId){let sale=sales.find(s=>s.id==saleId);if(!sale)return;let prod=products.find(p=>sale.product.includes(p.name));if(prod)prod.stock++;sales.push({id:Date.now(),product:sale.product,type:'refund',price:sale.price,date:new Date().toISOString()});save();alert('Refunded: '+sale.product);}
+function addProduct(){
+ let name=document.getElementById('newName').value,price=parseInt(document.getElementById('newPrice').value),stock=parseInt(document.getElementById('newStock').value)||0,emoji=document.getElementById('newEmoji').value||'📦',cat=document.getElementById('newCat').value||'Essentials';
+ if(!name||!price)return alert('Name and Price required');
+ products.push({id:Date.now(),name,price,stock,emoji,cat});save();
+ document.getElementById('newName').value='';document.getElementById('newPrice').value='';document.getElementById('newStock').value='';document.getElementById('newEmoji').value='';document.getElementById('newCat').value='';
+}
+function delProd(id){if(confirm('Delete product forever?')){products=products.filter(x=>x.id!=id);save();}}
+function filterSales(f){salesFilter=f;renderAll();}
+function clearSales(){if(confirm('Clear ALL sales report? This cannot be undone')){sales=[];localStorage.setItem('aneman_sales','[]');renderAll();}}
+function changePin(){let np=document.getElementById('newPin').value;if(np.length!=4)return alert('PIN must be 4 digits');localStorage.setItem('owner_pin',np);PIN=np;alert('PIN changed to '+np);document.getElementById('newPin').value='';}
+</script>
+</body>
+</html>

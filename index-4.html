@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rent — Check & Pay | Aneman Systems</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;600&display=swap" rel="stylesheet">
+<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Space Grotesk;background:#07070a;color:#fff;padding:20px}
+.card{max-width:420px;margin:20px auto;background:#111;border:1px solid #222;border-radius:20px;padding:20px}
+input{width:100%;padding:14px;border-radius:12px;border:1px solid #333;background:#000;color:#fff;margin:8px 0}
+.btn{width:100%;padding:14px;border-radius:30px;background:#22c55e;color:#000;font-weight:900;border:none;margin-top:10px}
+.stat{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #222;font-size:14px}
+.paid{color:#22c55e}.unpaid{color:#ef4444}
+</style></head>
+<body>
+<div style="text-align:center;margin-top:20px"><h1>🏠 RENT CHECK</h1><small style="color:#777">Aneman Systems • Township Landlord System</small></div>
+<div class="card">
+<input id="room" placeholder="Enter Room No. e.g. A3">
+<button class="btn" onclick="check()">Check My Rent</button>
+<div id="result" style="margin-top:16px"></div>
+</div>
+<script>
+function getData(){return JSON.parse(localStorage.getItem('rent_data')||'[]')}
+function check(){
+  const r=document.getElementById('room').value.trim().toUpperCase()
+  const data=getData().find(x=>x.room===r)
+  const res=document.getElementById('result')
+  if(!data){res.innerHTML='<p style="color:#ef4444">Room not found. Ask landlord.</p>';return}
+  res.innerHTML=`
+    <div class="stat"><span>Tenant</span><b>${data.name}</b></div>
+    <div class="stat"><span>Room</span><b>${data.room}</b></div>
+    <div class="stat"><span>Rent</span><b>R${data.rent}</b></div>
+    <div class="stat"><span>Due</span><b>${data.due}</b></div>
+    <div class="stat"><span>Status</span><b class="${data.paid?'paid':'unpaid'}">${data.paid?'✅ PAID':'❌ UNPAID'}</b></div>
+    ${!data.paid?`<a class="btn" style="display:block;text-align:center;text-decoration:none;margin-top:12px" href="https://wa.me/27817040126?text=Hi%20I%20am%20${data.name}%20Room%20${data.room}%20Paying%20Rent%20R${data.rent}">Pay via WhatsApp →</a>`:''}
+  `
+}
+</script>
+</body></html>

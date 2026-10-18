@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Clinic Admin - Owner Master - FIXED V4</title>
+<style>
+*{box-sizing:border-box} body{margin:0;background:#f5f7fa;color:#000;font-family:system-ui}
+.login{height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:#0e4a7b;color:#fff}
+.login input{background:#123a5f;border:1px solid #2a5a8a;color:#fff;padding:16px 20px;border-radius:12px;font-size:20px;letter-spacing:6px;width:220px;text-align:center}
+.btn{padding:8px 14px;border-radius:8px;border:0;font-weight:900;font-size:11px;cursor:pointer}
+.y{background:#ffcc00;color:#000} .r{background:#ff3b30;color:#fff} .g{background:#fff;border:1px solid #ddd;color:#000} .b{background:#111;color:#fff}
+.hidden{display:none}
+.top{padding:14px 16px;background:#111;color:#fff;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:20}
+.role-badge{padding:4px 10px;border-radius:20px;font-size:10px;font-weight:900}
+.role-owner{background:#ffcc00;color:#000} .role-master{background:#ff00ff;color:#fff} .role-reception{background:#7ec8ff;color:#000} .role-doctor{background:#4ade80;color:#000} .role-nurse{background:#ff9ad0;color:#000} .role-pharmacy{background:#a78bfa;color:#000} .role-lab{background:#facc15;color:#000}
+.nav{padding:10px 12px;display:flex;gap:8px;overflow:auto;background:#fff;border-bottom:1px solid #ddd;position:sticky;top:56px;z-index:10}
+.nav button{white-space:nowrap;padding:10px 16px;border-radius:20px;border:1px solid #ddd;background:#fff;font-weight:800;font-size:12px}
+.nav button.active{background:#0e4a7b;color:#fff}
+.card{background:#fff;border:1px solid #ddd;border-radius:16px;padding:14px;margin:12px}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
+.stat{background:#f6f8fb;border:1px solid #eee;border-radius:12px;padding:10px;text-align:center}
+.stat b{font-size:18px;display:block} .stat span{font-size:9px;color:#888;font-weight:800}
+table{width:100%;border-collapse:collapse;font-size:12px} th{color:#888;font-size:10px;text-align:left;padding:8px 6px} td{padding:10px 6px;border-top:1px solid #eee}
+.small{background:#f6f8fb;border:1px solid #ddd;padding:10px;border-radius:8px;width:100%;font-size:12px}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.perm{font-size:10px;color:#888;margin-top:6px}
+.owner-only{border:2px solid #ffcc00}
+</style>
+</head>
+<body>
+
+<div class="login" id="loginBox">
+<h1>🏥 CLINIC LOGIN</h1>
+<select id="roleSelect" style="padding:12px;border-radius:10px;width:240px;font-weight:800">
+<option value="owner">👑 OWNER</option>
+<option value="reception">📋 RECEPTION</option>
+<option value="doctor">🩺 DOCTOR</option>
+<option value="nurse">💉 NURSE</option>
+<option value="pharmacy">💊 PHARMACY</option>
+<option value="lab">🧪 LAB</option>
+</select>
+<input id="pin" type="password" maxlength="4" placeholder="Enter PIN">
+<button class="btn y" onclick="login()" style="padding:14px 30px;width:240px;font-size:14px">LOGIN</button>
+<div style="background:#123a5f;padding:14px;border-radius:12px;font-size:11px;line-height:1.6;width:270px;text-align:left">
+<b style="color:#ffcc00">PINS:</b><br>
+👑 Owner: <b id="showOwner">1234</b> 🔑 Master: <b id="showMaster" style="color:#ff88ff">9999</b><br>
+📋 Reception: 1111 | 🩺 Doctor: 2222<br>
+💉 Nurse: 3333 | 💊 Pharmacy: 4444 | 🧪 Lab: 5555<br><br>
+<small style="color:#7ec8ff">Master 9999 unlocks ALL</small>
+</div>
+</div>
+
+<div class="hidden" id="adminBox">
+<div class="top"><div><b id="welcome">CLINIC</b><br><small id="roleInfo" style="color:#aaa;font-size:10px"></small></div><div><span class="role-badge" id="roleBadge">ROLE</span> <span id="todayTotal" style="background:#0e4a7b;color:#fff;padding:6px 12px;border-radius:20px;font-weight:900;margin-left:6px">R0</span></div></div>
+<div class="nav" id="navBar"></div>
+<div class="card" id="statsCard">
+<div class="stat-grid">
+<div class="stat"><b id="sProc">0</b><span>PROCEDURES</span></div>
+<div class="stat"><b id="sQueue" style="color:#ff8a00">0</b><span>IN QUEUE</span></div>
+<div class="stat"><b id="sDone" style="color:#0a7a0a">0</b><span>DONE TODAY</span></div>
+<div class="stat"><b id="sSlots">0</b><span>SLOTS LEFT</span></div>
+</div>
+<p class="perm" id="permText"></p>
+</div>
+<div class="card" id="tab-queue"><h3>⏳ PATIENT QUEUE</h3><table id="queueTable"></table></div>
+<div class="card hidden" id="tab-procedures"><h3>📦 PROCEDURES STOCK</h3><table id="procTable"></table></div>
+<div class="card hidden owner-only" id="tab-sales"><h3>💰 SALES REPORT — OWNER ONLY</h3><div style="margin-bottom:10px"><button class="btn g" onclick="filterSales('today')">Today</button> <button class="btn g" onclick="filterSales('all')">All Time</button> <button class="btn r" id="clearSalesBtn" onclick="clearSales()">Clear (Old)</button></div>
+<div style="background:#111;color:#fff;padding:12px;border-radius:12px;margin-bottom:12px">
+<div style="font-size:22px;font-weight:900">Total: <span id="salesTotal">R0</span></div>
+<button onclick="cashUp()" style="margin-top:10px;background:#ff3b30;color:#fff;border:0;padding:12px 20px;border-radius:10px;font-weight:900;width:100%">💰 CASH UP - END DAY (Clear Sales to R0)</button>
+<small style="display:block;margin-top:6px;color:#aaa">Saves cash-up history then clears today's sales to 0. Stock stays.</small>
+<div id="cashupHistory" style="margin-top:8px;font-size:10px;color:#ffcc00"></div>
+</div>
+<table id="salesTable"></table></div>
+<div class="card hidden" id="tab-refund"><h3>↩️ REFUND - Returns Stock/Slot</h3><table id="refundTable"></table></div>
+<div class="card hidden" id="tab-manage"><h3>⚙️ ADD/DELETE PROCEDURE</h3><div class="row"><input id="nName" class="small" placeholder="Name" style="flex:2"><input id="nPrice" type="number" class="small" placeholder="Price" style="flex:1"><input id="nStock" type="number" class="small" placeholder="Slots" style="flex:1"><input id="nEmoji" class="small" placeholder="Emoji" style="flex:0.5"><input id="nCat" class="small" placeholder="Category" style="flex:1"></div><input id="nDesc" class="small" placeholder="Description" style="margin-bottom:8px"><button class="btn y" onclick="addProc()" style="width:100%;padding:12px">ADD</button><h3 style="margin-top:20px">🗑️ DELETE</h3><table id="manageTable"></table></div>
+<div class="card hidden" id="tab-users"><h3>👥 STAFF & PINS — OWNER ONLY</h3>
+<div style="background:#fff8cc;border:1px solid #ffcc00;border-radius:10px;padding:10px;margin-bottom:12px">
+<b style="font-size:12px">🔑 OWNER MASTER CONTROL</b><br>
+<div class="row" style="margin-top:8px"><div style="flex:1"><small>Owner PIN</small><input id="ownerPinInput" type="password" maxlength="4" class="small"></div><div style="flex:1"><small>Master PIN</small><input id="masterPinInput" type="password" maxlength="4" class="small"></div><button class="btn b" onclick="saveOwnerPins()" style="align-self:end">SAVE PINS</button></div>
+</div>
+<div class="row"><select id="uRole" class="small" style="flex:1"><option value="doctor">🩺 Doctor</option><option value="reception">📋 Reception</option><option value="nurse">💉 Nurse</option><option value="pharmacy">💊 Pharmacy</option><option value="lab">🧪 Lab</option></select><input id="uName" class="small" placeholder="Title / Name e.g. Head Nurse" style="flex:2"><input id="uPin" type="password" maxlength="4" class="small" placeholder="PIN" style="flex:1"><button class="btn y" onclick="addUser()">ADD STAFF</button></div>
+<table id="usersTable"></table>
+</div>
+</div>
+
+<script>
+let defaultUsers=[
+{id:1,role:'owner',name:'Owner',pin:'1234'},
+{id:2,role:'reception',name:'Reception',pin:'1111'},
+{id:3,role:'doctor',name:'Dr. Main',pin:'2222'},
+{id:4,role:'nurse',name:'Nurse',pin:'3333'},
+{id:5,role:'pharmacy',name:'Pharmacy',pin:'4444'},
+{id:6,role:'lab',name:'Lab',pin:'5555'},
+];
+let saved = JSON.parse(localStorage.getItem('clinic_users')||'null');
+let users = saved || defaultUsers;
+// AUTO-FIX: add missing roles without deleting your custom staff
+defaultUsers.forEach(d=>{
+  if(!users.some(u=>u.role==d.role && u.pin==d.pin)){
+    // only add if role completely missing
+    if(!users.some(u=>u.role==d.role)){
+      users.push(d);
+    }
+  }
+});
+if(users.length<3) users=defaultUsers;
+if(saved && users.length!=saved.length) localStorage.setItem('clinic_users',JSON.stringify(users));
+
+let ownerPin=localStorage.getItem('owner_pin')||'1234';
+let masterPin=localStorage.getItem('master_pin')||'9999';
+let currentUser=null; let isMaster=false;
+document.getElementById('showOwner').textContent=ownerPin;
+document.getElementById('showMaster').textContent=masterPin;
+
+function login(){
+ let role=document.getElementById('roleSelect').value;
+ let pin=document.getElementById('pin').value;
+ let found=null; isMaster=false;
+ if(pin==masterPin){
+  found=users.find(u=>u.role=='owner')||{role:'owner',name:'Owner (MASTER)',pin:masterPin};
+  isMaster=true;
+ } else {
+  if(role=='owner') found=users.find(u=>u.role=='owner'&&u.pin==pin) || (pin==ownerPin?{role:'owner',name:'Owner',pin}:null);
+  else found=users.find(u=>u.role==role&&u.pin==pin);
+ }
+ if(!found){alert('Wrong PIN for '+role.toUpperCase()+' . Try '+ (role=='nurse'?'3333':role=='pharmacy'?'4444':role=='lab'?'5555':''));return}
+ currentUser=found;
+ if(isMaster) currentUser={...found,role:'owner',name:'Owner (MASTER '+masterPin+')',isMaster:true};
+ document.getElementById('loginBox').classList.add('hidden');
+ document.getElementById('adminBox').classList.remove('hidden');
+ document.getElementById('welcome').textContent=currentUser.name.toUpperCase();
+ document.getElementById('roleBadge').textContent=isMaster?'MASTER '+masterPin:currentUser.role.toUpperCase();
+ document.getElementById('roleBadge').className='role-badge '+(isMaster?'role-master':'role-'+currentUser.role);
+ document.getElementById('roleInfo').textContent=isMaster?'Master PIN — full access':'Logged as '+currentUser.role;
+ buildNav(); init();
+}
+
+function buildNav(){
+ let nav=document.getElementById('navBar');nav.innerHTML='';
+ let tabs=[];
+ if((currentUser.role=='doctor'||currentUser.role=='nurse')&&!isMaster){
+  tabs=[{id:'queue',label:'⏳ MY PATIENTS'}];
+  document.getElementById('permText').textContent='🩺 '+currentUser.role+': patients & DONE only. Sales hidden.';
+ } else if(currentUser.role=='reception'&&!isMaster){
+  tabs=[{id:'queue',label:'⏳ QUEUE'},{id:'refund',label:'↩️ REFUND'}];
+  document.getElementById('permText').textContent='📋 Reception: queue & refund only. Sales = Owner only.';
+ } else if(currentUser.role=='pharmacy'&&!isMaster){
+  tabs=[{id:'procedures',label:'📦 STOCK'}];
+  document.getElementById('permText').textContent='💊 Pharmacy: stock only.';
+ } else if(currentUser.role=='lab'&&!isMaster){
+  tabs=[{id:'procedures',label:'🧪 LAB PROCEDURES'}];
+  document.getElementById('permText').textContent='🧪 Lab: procedures only.';
+ } else {
+  tabs=[{id:'queue',label:'⏳ QUEUE'},{id:'procedures',label:'📦 PROCEDURES'},{id:'sales',label:'💰 SALES (Owner)'},{id:'refund',label:'↩️ REFUND'},{id:'manage',label:'⚙️ ADD/DELETE'},{id:'users',label:'👥 STAFF & PINS'}];
+  document.getElementById('permText').textContent=isMaster?'🔑 MASTER — full control, sales visible.':'👑 Owner: everything.';
+ }
+ tabs.forEach((t,i)=>{let b=document.createElement('button');b.textContent=t.label;b.className=i==0?'active':'';b.onclick=()=>tab(t.id,b);nav.appendChild(b);if(i==0)tab(t.id,b);});
+ document.getElementById('clearSalesBtn').style.display=(currentUser.role=='owner'||isMaster)?'inline-block':'none';
+ document.getElementById('ownerPinInput').value=ownerPin;
+ document.getElementById('masterPinInput').value=masterPin;
+ let h=JSON.parse(localStorage.getItem('cashup_history')||'[]'); 
+ if(h.length) document.getElementById('cashupHistory').innerHTML='Last cash up: '+h[h.length-1].date+' R'+h[h.length-1].sales;
+}
+
+let procedures=JSON.parse(localStorage.getItem('aneman_clinic')||'[]');
+if(procedures.length==0){procedures=[{id:1,name:'General Consultation',price:250,duration:'15 min',desc:'Check-up',emoji:'🩺',cat:'Consultation',stock:20},{id:2,name:'Blood Test',price:350,duration:'10 min',desc:'Full blood',emoji:'🧪',cat:'Lab Tests',stock:15},{id:3,name:'Flu Vaccine',price:280,duration:'5 min',desc:'Flu',emoji:'💉',cat:'Vaccines',stock:12}];}
+let bookings=JSON.parse(localStorage.getItem('aneman_clinic_bookings')||'[]');
+let filter='today';
+function save(){localStorage.setItem('aneman_clinic',JSON.stringify(procedures));localStorage.setItem('aneman_clinic_bookings',JSON.stringify(bookings));localStorage.setItem('clinic_users',JSON.stringify(users));localStorage.setItem('owner_pin',ownerPin);localStorage.setItem('master_pin',masterPin);render()}
+function tab(name,btn){document.querySelectorAll('[id^="tab-"]').forEach(t=>t.classList.add('hidden'));document.getElementById('tab-'+name).classList.remove('hidden');document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));btn.classList.add('active')}
+function init(){render()}
+function render(){
+ let today=bookings.filter(b=>new Date(b.date).toDateString()==new Date().toDateString());
+ document.getElementById('sProc').textContent=procedures.length;
+ document.getElementById('sQueue').textContent=today.filter(b=>b.status=='waiting').length;
+ document.getElementById('sDone').textContent=today.filter(b=>b.status=='done').length;
+ document.getElementById('sSlots').textContent=procedures.reduce((a,b)=>a+b.stock,0);
+ document.getElementById('todayTotal').textContent='Today R'+today.filter(b=>b.type=='sale').reduce((a,b)=>a+b.price,0);
+ let qT=document.getElementById('queueTable');qT.innerHTML='<tr><th>Time</th><th>Patient</th><th>Procedure</th><th>Status</th><th>Action</th></tr>';
+ today.slice(-30).reverse().forEach(b=>{let tr=document.createElement('tr');tr.innerHTML=`<td>${new Date(b.date).toLocaleTimeString()}<br><small>${b.phone||''}</small></td><td><b>${b.patient}</b></td><td>${b.procedure}</td><td><span style="background:${b.status=='waiting'?'#ff8a00':'#0a7a0a'};color:#fff;padding:3px 8px;border-radius:10px;font-size:10px;font-weight:900">${b.status.toUpperCase()}</span></td><td>${b.status=='waiting'?`<button class="btn y" onclick="done(${b.id})">DONE</button>${(currentUser.role!='doctor'&&currentUser.role!='nurse'||isMaster)?` <button class="btn r" onclick="refund(${b.id})">REFUND</button>`:''}`:'✅'}</td>`;qT.appendChild(tr);});
+ let pT=document.getElementById('procTable');pT.innerHTML='<tr><th>Procedure</th><th>Price</th><th>Slots</th><th>Control</th></tr>';
+ procedures.forEach(p=>{let tr=document.createElement('tr');tr.innerHTML=`<td>${p.emoji} ${p.name}<br><small style="color:#888">${p.cat}</small></td><td>R${p.price}</td><td>${p.stock}</td><td><button class="btn g" onclick="adj(${p.id},1)">+1</button> <button class="btn g" onclick="adj(${p.id},-1)">-1</button> <button class="btn g" onclick="adj(${p.id},10)">+10</button></td>`;pT.appendChild(tr);});
+ let filtered=filter=='today'?today:bookings;
+ document.getElementById('salesTotal').textContent='R'+filtered.filter(b=>b.type=='sale').reduce((a,b)=>a+b.price,0)+' ('+filtered.filter(b=>b.type=='sale').length+' tx)';
+ let sT=document.getElementById('salesTable');sT.innerHTML='<tr><th>Time</th><th>Patient</th><th>Procedure</th><th>R</th><th>Type</th></tr>';
+ filtered.slice(-50).reverse().forEach(b=>{let tr=document.createElement('tr');tr.innerHTML=`<td>${new Date(b.date).toLocaleString()}</td><td>${b.patient||'-'}</td><td>${b.procedure}</td><td>R${b.price}</td><td style="color:${b.type=='sale'?'#0a7a0a':'#ff3b30'};font-weight:900">${b.type}</td>`;sT.appendChild(tr);});
+ let rT=document.getElementById('refundTable');rT.innerHTML='<tr><th>Booking</th><th>Refund + Return Stock</th></tr>';
+ filtered.filter(b=>b.type=='sale'&&b.status!='refunded').slice(-30).reverse().forEach(b=>{let tr=document.createElement('tr');tr.innerHTML=`<td>${b.patient} - ${b.procedure} - R${b.price}<br><small>${new Date(b.date).toLocaleString()}</small></td><td><button class="btn r" onclick="refund(${b.id})">REFUND & RETURN SLOT</button></td>`;rT.appendChild(tr);});
+ let mT=document.getElementById('manageTable');mT.innerHTML='<tr><th>Procedure</th><th>Price/Slots</th><th>Delete</th></tr>';
+ procedures.forEach(p=>{let tr=document.createElement('tr');tr.innerHTML=`<td>${p.emoji} ${p.name}</td><td>R${p.price} / ${p.stock}</td><td><button class="btn r" onclick="del(${p.id})">DELETE</button></td>`;mT.appendChild(tr);});
+ let uT=document.getElementById('usersTable');uT.innerHTML='<tr><th>Role</th><th>Name / Title</th><th>PIN</th><th>Action</th></tr>';
+ users.forEach(u=>{let tr=document.createElement('tr');tr.innerHTML=`<td><span class="role-badge role-${u.role}">${u.role}</span></td><td>${u.name}</td><td>${(currentUser.role=='owner'||isMaster)?u.pin:'****'}</td><td>${(currentUser.role=='owner'||isMaster)&&u.role!='owner'?`<button class="btn r" onclick="delUser(${u.id})">DELETE</button>`:u.role=='owner'?'<small>Owner</small>':''}</td>`;uT.appendChild(tr);});
+}
+function adj(id,d){if(currentUser.role!='owner'&&!isMaster&&currentUser.role!='pharmacy'&&currentUser.role!='lab')return alert('Owner/Pharmacy/Lab only');let p=procedures.find(x=>x.id==id);p.stock+=d;if(p.stock<0)p.stock=0;save()}
+function done(id){let b=bookings.find(x=>x.id==id);b.status='done';save()}
+function refund(id){
+ if(currentUser.role=='doctor'&&!isMaster&&currentUser.role=='nurse'&&!isMaster)return alert('Cannot refund');
+ let b=bookings.find(x=>x.id==id);
+ if(!b) return;
+ if(!confirm('Refund R'+b.price+' for '+b.patient+'?\nThis will RETURN slot/stock.')) return;
+ // FIND PROCEDURE AND RETURN STOCK
+ let proc = procedures.find(p=> b.procedure.toLowerCase().includes(p.name.toLowerCase()) || p.name.toLowerCase().includes(b.procedure.toLowerCase()) );
+ if(proc){
+   proc.stock += (b.qty||1);
+ } else {
+   // try by id
+   if(b.procId){ let pp=procedures.find(p=>p.id==b.procId); if(pp) pp.stock+=(b.qty||1); }
+ }
+ // MARK REFUNDED
+ b.status='refunded';
+ bookings.push({id:Date.now(),patient:b.patient,procedure:b.procedure+' (REFUND - stock returned)',price:b.price,type:'refund',date:new Date().toISOString(),status:'refunded',qty:b.qty});
+ save();
+ alert('✅ Refunded R'+b.price+' + Slot/Stock returned to '+ (proc?proc.name:'inventory'));
+}
+function addProc(){if(currentUser.role!='owner'&&!isMaster)return alert('Owner only');let name=document.getElementById('nName').value,price=parseInt(document.getElementById('nPrice').value),stock=parseInt(document.getElementById('nStock').value)||5,emoji=document.getElementById('nEmoji').value||'🩺',cat=document.getElementById('nCat').value||'Consultation',desc=document.getElementById('nDesc').value||'New';if(!name||!price)return alert('Name & Price');procedures.push({id:Date.now(),name,price,stock,emoji,cat,desc,duration:'15 min'});save();document.getElementById('nName').value='';document.getElementById('nPrice').value='';document.getElementById('nStock').value='';document.getElementById('nDesc').value='';}
+function del(id){if(currentUser.role!='owner'&&!isMaster)return alert('Owner only');if(confirm('Delete?')){procedures=procedures.filter(x=>x.id!=id);save()}}
+function addUser(){if(currentUser.role!='owner'&&!isMaster)return alert('Owner only');let role=document.getElementById('uRole').value,name=document.getElementById('uName').value,pin=document.getElementById('uPin').value;if(!name||pin.length!=4)return alert('Title/Name & 4-digit PIN');users.push({id:Date.now(),role,name,pin});save();document.getElementById('uName').value='';document.getElementById('uPin').value='';}
+function delUser(id){if(currentUser.role!='owner'&&!isMaster)return;if(confirm('Delete staff?')){users=users.filter(x=>x.id!=id);save()}}
+function filterSales(f){filter=f;render()}
+function clearSales(){if(currentUser.role!='owner'&&!isMaster)return;if(confirm('Clear all bookings (old method)? Use CASH UP instead. Clear anyway?')){bookings=[];save()}}
+function cashUp(){
+ if(currentUser.role!='owner'&&!isMaster) return alert('Owner only');
+ let todayStr = new Date().toLocaleDateString();
+ let todayBookings = bookings.filter(b=>new Date(b.date).toDateString()==new Date().toDateString() && b.type=='sale');
+ let total = todayBookings.reduce((a,b)=>a+b.price,0);
+ if(total==0) { if(!confirm('Today sales already R0. Cash up anyway?')) return; }
+ if(!confirm('💰 CASH UP for '+todayStr+'\nTotal R'+total+'\n\nThis will CLEAR TODAY sales to R0 and keep stock.\nContinue?')) return;
+ let history = JSON.parse(localStorage.getItem('cashup_history')||'[]');
+ history.push({date:todayStr,time:new Date().toLocaleString(),sales:total,count:todayBookings.length});
+ localStorage.setItem('cashup_history',JSON.stringify(history));
+ // Remove today's sales from bookings, keep refund records and done
+ bookings = bookings.filter(b=> !(new Date(b.date).toDateString()==new Date().toDateString() && b.type=='sale') );
+ save();
+ alert('✅ CASH UP DONE\nDate: '+todayStr+'\nCashed: R'+total+'\nSales now R0');
+ render();
+}
+function saveOwnerPins(){
+ if(currentUser.role!='owner'&&!isMaster)return alert('Owner only');
+ let o=document.getElementById('ownerPinInput').value,m=document.getElementById('masterPinInput').value;
+ if(o.length!=4||m.length!=4)return alert('Both PINs must be 4 digits');
+ ownerPin=o; masterPin=m;
+ let ownerUser=users.find(u=>u.role=='owner');if(ownerUser)ownerUser.pin=o;
+ localStorage.setItem('owner_pin',ownerPin);localStorage.setItem('master_pin',masterPin);localStorage.setItem('clinic_users',JSON.stringify(users));
+ document.getElementById('showOwner').textContent=ownerPin;document.getElementById('showMaster').textContent=masterPin;
+ alert('✅ Saved\nOwner: '+ownerPin+'\nMaster: '+masterPin);
+}
+</script>
+</body>
+</html>
