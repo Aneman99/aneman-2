@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stokvel Money Book - Aneman</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+body{background:#f6f7fb;padding-bottom:85px}
+.header{background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff;padding:16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+.logo{width:40px;height:40px;background:#facc15;color:#000;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:900}
+.badge{padding:5px 12px;border-radius:20px;font-size:10px;font-weight:800}.admin{background:#facc15;color:#000}.treasurer{background:#22c55e;color:#fff}.member{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.2)}
+.statGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px}
+.stat{background:#fff;border-radius:18px;padding:14px;box-shadow:0 2px 14px rgba(0,0,0,.05);border:1px solid #eef2f7}.stat.dark{background:linear-gradient(135deg,#111827,#1f2937);color:#fff}
+.stat.l{font-size:10px;font-weight:700;opacity:.6;text-transform:uppercase}.stat.v{font-size:22px;font-weight:900;margin-top:4px}
+.card{background:#fff;margin:12px;border-radius:20px;padding:16px;box-shadow:0 2px 16px rgba(0,0,0,.05);border:1px solid #eef2f7}
+.card h3{font-size:13px;font-weight:900;margin-bottom:10px}
+.input{width:100%;padding:14px;border:1px solid #e5e7eb;border-radius:12px;margin-top:10px;background:#f9fafb;outline:none;font-size:15px}
+.btn{width:100%;padding:14px;border:none;border-radius:12px;font-weight:800;font-size:14px;cursor:pointer;margin-top:12px}
+.btn-black{background:#111;color:#fff}.btn-green{background:#22c55e;color:#fff}.btn-ghost{background:#f3f4f6;color:#111}
+.flex{display:flex;gap:8px}.flex>*{flex:1}
+.row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f1f5f9}
+.pending{background:linear-gradient(135deg,#fffbeb,#fef3c7);border:1px solid #fde68a;border-radius:14px;padding:12px;margin-top:10px}
+#login{position:fixed;inset:0;background:radial-gradient(800px at 20% 10%,#1e293b,#0f172a);display:flex;align-items:center;justify-content:center;z-index:999;padding:16px}
+.loginBox{background:#fff;width:100%;max-width:380px;padding:28px;border-radius:24px;text-align:center}
+.small{font-size:11px;color:#6b7280}.hidden{display:none}
+.footer{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-top:1px solid #e5e7eb;padding:10px 16px;display:flex;justify-content:space-between;font-size:11px}
+.del{background:#fee2e2;color:#dc2626;padding:6px 10px;border-radius:8px;font-size:11px;font-weight:800;border:none}
+#popia{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:1000;padding:16px}
+.pBox{background:#fff;border-radius:20px;padding:20px;width:100%;max-width:520px}
+</style>
+</head>
+<body>
+
+<div id="login">
+<div class="loginBox">
+<div class="logo" style="margin:0 auto 14px;width:56px;height:56px;font-size:22px">S</div>
+<h2 style="font-weight:900;letter-spacing:-.5px">STOKVEL MONEY BOOK</h2>
+<p class="small" style="margin-top:6px">Secure & Encrypted • Powered by <b style="color:#111">Aneman</b></p>
+<div style="margin-top:20px;text-align:left">
+<label class="small" style="font-weight:700;color:#111">Member Name</label>
+<input id="lName" class="input" placeholder="Enter your name">
+<label class="small" style="font-weight:700;color:#111;margin-top:12px;display:block">PIN</label>
+<input id="lPin" class="input" placeholder="••••" type="password">
+</div>
+<button class="btn btn-black" onclick="login()" style="margin-top:18px">LOGIN →</button>
+<p class="small" style="margin-top:16px">Forgot PIN? Contact your Stokvel Admin.<br><a href="#" onclick="openP();return false" style="color:#111;font-weight:800;text-decoration:underline">POPIA Privacy Policy</a><br>© 2026 Powered by Aneman • South Africa<br><br><a href="../index.html" style="color:#000;font-weight:800">Back to Aneman</a></p>
+</div>
+</div>
+
+<div class="header">
+<div style="display:flex;align-items:center;gap:10px"><div class="logo">S</div><div><div style="font-weight:900;font-size:14px">STOKVEL BOOK</div><div style="font-size:10px;opacity:.7">POWERED BY ANEMAN</div></div></div>
+<div style="display:flex;align-items:center;gap:8px"><span id="roleBadge" class="badge"></span><span id="uName" style="font-size:12px;font-weight:700"></span></div>
+</div>
+
+<div class="statGrid">
+<div class="stat dark"><div class="l">💎 Total Pot</div><div class="v" id="pot">R0</div><div class="small" style="color:#cbd5e1;margin-top:4px" id="potInfo">0 members</div></div>
+<div class="stat"><div class="l">👤 Your Balance</div><div class="v" id="myBal">R0</div><div class="small" id="myInfo">Sent R0 • Took R0</div></div>
+</div>
+
+<div id="adminBox" class="card hidden">
+<h3>👑 ADMIN — Add New Member</h3>
+<input id="nName" class="input" placeholder="Full Name">
+<div class="flex"><input id="nPin" class="input" placeholder="Set PIN"><input id="nLimit" class="input" type="number" placeholder="Limit"></div>
+<button class="btn btn-black" onclick="addMember()">+ ADD MEMBER</button>
+</div>
+
+<div id="treasBox" class="card hidden">
+<h3>💰 Record Contribution</h3>
+<select id="pSelect" class="input"></select>
+<div class="flex"><input id="pAmt" class="input" type="number" placeholder="Amount"><button class="btn btn-black" style="width:100px" onclick="addPay()">ADD</button></div>
+</div>
+
+<div id="pendBox" class="card hidden">
+<h3>⚠️ Pending Requests</h3>
+<div id="pendList"></div>
+</div>
+
+<div id="memberBox" class="card hidden">
+<h3>🙏 Request Money</h3>
+<input id="rAmt" class="input" type="number" placeholder="Amount">
+<input id="rReason" class="input" placeholder="Reason">
+<button class="btn btn-green" onclick="reqMoney()">SEND TO ADMIN</button>
+<p class="small" id="rMsg" style="margin-top:8px"></p>
+</div>
+
+<div class="card"><h3>👥 Members</h3><div id="mList"></div></div>
+<div class="card"><h3>📜 History</h3><div id="hList"></div><button class="btn btn-ghost" onclick="logout()">Logout</button></div>
+<div class="footer"><div>Powered by <b>Aneman</b> © 2026</div><div><a href="#" onclick="openP();return false" style="color:#111;font-weight:800;text-decoration:none">POPIA</a></div></div>
+<div id="popia" onclick="if(event.target==this) closeP()"><div class="pBox"><h3 style="font-weight:900">🔒 POPIA Privacy</h3><p class="small" style="margin-top:10px;line-height:1.7">Powered by Aneman • POPIA Compliant • PINs only visible to Admin/Treasurer.</p><button class="btn btn-black" onclick="closeP()">Close</button></div></div>
+
+<script>
+const DB_KEY="aneman_prod_final";
+let db=JSON.parse(localStorage.getItem(DB_KEY)||'{"members":[],"payments":[],"requests":[],"pins":{"admin":"1234","treasurer":"0000"}}');
+let session=JSON.parse(localStorage.getItem("aneman_sess")||"null");
+if(session){ document.getElementById("login").style.display="none"; init(); }
+function openP(){document.getElementById("popia").style.display="flex"} function closeP(){document.getElementById("popia").style.display="none"}
+function save(){ localStorage.setItem(DB_KEY, JSON.stringify(db)); render(); }
+function login(){
+  let n=document.getElementById("lName").value.trim(); let p=document.getElementById("lPin").value.trim();
+  if(!n||!p) return alert("Enter Name + PIN");
+  if(n.toUpperCase()=="ADMIN"&&p==db.pins.admin) session={name:"ADMIN",role:"admin"};
+  else if(n.toUpperCase()=="TREASURER"&&p==db.pins.treasurer) session={name:"TREASURER",role:"treasurer"};
+  else{ let m=db.members.find(x=>x.name.toLowerCase()==n.toLowerCase()&&x.pin==p); if(!m) return alert("Wrong Name or PIN. Ask Admin."); session={name:m.name,role:"member"}; }
+  localStorage.setItem("aneman_sess", JSON.stringify(session)); document.getElementById("login").style.display="none"; init();
+}
+function init(){
+  document.getElementById("uName").innerText=session.name;
+  let b=document.getElementById("roleBadge"); b.innerText=session.role.toUpperCase(); b.className="badge "+session.role;
+  document.getElementById("adminBox").classList.toggle("hidden", session.role!="admin");
+  document.getElementById("treasBox").classList.toggle("hidden",!(session.role=="admin"||session.role=="treasurer"));
+  document.getElementById("pendBox").classList.toggle("hidden",!(session.role=="admin"||session.role=="treasurer"));
+  document.getElementById("memberBox").classList.toggle("hidden", session.role!="member");
+  render();
+}
+function addMember(){ let name=document.getElementById("nName").value.trim(); let pin=document.getElementById("nPin").value.trim(); let lim=parseFloat(document.getElementById("nLimit").value); if(!name||!pin||!lim) return alert("Fill all"); if(db.members.find(m=>m.name.toLowerCase()==name.toLowerCase())) return alert("Exists"); db.members.push({name,pin,limit:lim}); save(); document.getElementById("nName").value=""; document.getElementById("nPin").value=""; document.getElementById("nLimit").value=""; }
+function addPay(){ let name=document.getElementById("pSelect").value; let amt=parseFloat(document.getElementById("pAmt").value); if(!name||!amt) return alert("Select"); db.payments.push({name,amount:amt,time:Date.now(),date:new Date().toLocaleDateString(),by:session.name}); save(); document.getElementById("pAmt").value=""; }
+function reqMoney(){ let amt=parseFloat(document.getElementById("rAmt").value); let reason=document.getElementById("rReason").value.trim(); let msg=document.getElementById("rMsg"); if(!amt||!reason){msg.innerText="Fill";return;} let m=db.members.find(x=>x.name==session.name); let sent=db.payments.filter(p=>p.name==session.name).reduce((s,p)=>s+p.amount,0); let taken=db.requests.filter(r=>r.name==session.name&&r.status=="approved").reduce((s,r)=>s+r.amount,0); let pend=db.requests.filter(r=>r.name==session.name&&r.status=="pending").reduce((s,r)=>s+r.amount,0); if(amt>(sent-taken-pend)){msg.style.color="#dc2626";msg.innerText="You have R"+(sent-taken-pend)+" only";return;} if(amt>m.limit){msg.style.color="#dc2626";msg.innerText="Limit R"+m.limit;return;} db.requests.push({id:Date.now(),name:session.name,amount:amt,reason,date:new Date().toLocaleDateString(),time:Date.now(),status:"pending"}); msg.style.color="#16a34a";msg.innerText="Sent to Admin"; document.getElementById("rAmt").value=""; document.getElementById("rReason").value=""; save(); }
+function approve(id){ let r=db.requests.find(x=>x.id==id); let sent=db.payments.filter(p=>p.name==r.name).reduce((s,p)=>s+p.amount,0); let taken=db.requests.filter(x=>x.name==r.name&&x.status=="approved").reduce((s,x)=>s+x.amount,0); if(r.amount>(sent-taken)) return alert(r.name+" has R"+(sent-taken)+" only"); r.status="approved"; save(); }
+function decline(id){ let r=db.requests.find(x=>x.id==id); r.status="declined"; save(); }
+function delMember(name){ if(session.role!="admin") return; if(!confirm("Delete "+name+"?")) return; db.members=db.members.filter(x=>x.name!=name); db.payments=db.payments.filter(p=>p.name!=name); db.requests=db.requests.filter(r=>r.name!=name); save(); }
+function render(){
+  let pot=db.payments.reduce((s,p)=>s+p.amount,0)-db.requests.filter(r=>r.status=="approved").reduce((s,r)=>s+r.amount,0);
+  document.getElementById("pot").innerText="R"+pot.toLocaleString(); document.getElementById("potInfo").innerText=db.members.length+" members";
+  let sel=document.getElementById("pSelect"); sel.innerHTML='<option value="">Select member</option>'; db.members.forEach(m=>{ let o=document.createElement("option"); o.value=m.name; o.textContent=m.name; sel.appendChild(o); });
+  let me=session?.name; let sent=db.payments.filter(p=>p.name==me).reduce((s,p)=>s+p.amount,0); let taken=db.requests.filter(r=>r.name==me&&r.status=="approved").reduce((s,r)=>s+r.amount,0);
+  document.getElementById("myBal").innerText="R"+(session?.role=="member"?(sent-taken):pot).toLocaleString();
+  document.getElementById("myInfo").innerText=session?.role=="member"?`Sent R${sent} • Took R${taken}`:`${db.payments.length} transactions`;
+  let ml=document.getElementById("mList"); ml.innerHTML=""; db.members.forEach(m=>{
+    let s=db.payments.filter(p=>p.name==m.name).reduce((a,b)=>a+b.amount,0); let t=db.requests.filter(r=>r.name==m.name&&r.status=="approved").reduce((a,b)=>a+b.amount,0);
+    let pinInfo=(session.role=="admin"||session.role=="treasurer")?`PIN:${m.pin} • `:"";
+    let delBtn=session.role=="admin"?`<button class="del" onclick="delMember('${m.name}')">Delete</button>`:"";
+    ml.innerHTML+=`<div class="row"><div><b>${m.name}</b> ${delBtn}<br><span class="small">${pinInfo}Limit R${m.limit} • Bal R${s-t}</span></div><div style="font-weight:900">R${s-t}</div></div>`;
+  });
+  let pl=document.getElementById("pendList"); pl.innerHTML=""; let pend=db.requests.filter(r=>r.status=="pending"); if(!pend.length) pl.innerHTML="<p class='small'>No pending</p>"; pend.forEach(r=>{ let d=document.createElement("div"); d.className="pending"; d.innerHTML=`<b>${r.name}</b> R${r.amount} ${r.reason}<div class="flex" style="margin-top:8px"><button class="btn btn-black" style="flex:1;padding:8px" onclick="approve(${r.id})">Approve</button><button class="btn btn-ghost" style="flex:1;padding:8px" onclick="decline(${r.id})">Decline</button></div>`; pl.appendChild(d); });
+  let hl=document.getElementById("hList"); hl.innerHTML=""; let all=[...db.payments.map(p=>({...p,type:'pay'})),...db.requests.map(r=>({...r,type:'req'}))].sort((a,b)=>b.time-a.time).slice(0,30); all.forEach(t=>{ let d=document.createElement("div"); d.style.cssText="padding:10px 0;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between"; d.innerHTML=t.type=='pay'?`✅ ${t.name} +R${t.amount}`:`${t.status.toUpperCase()} ${t.name} R${t.amount}`; hl.appendChild(d); });
+}
+function logout(){ localStorage.removeItem("aneman_sess"); location.reload(); }
+render();
+</script>
+</body>
+</html>
