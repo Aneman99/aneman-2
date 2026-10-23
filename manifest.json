@@ -1,0 +1,24 @@
+{
+  "name": "BORED - Picture Puzzle",
+  "short_name": "BORED",
+  "description": "BORED? Chill picture puzzle. Add any photo, solve it. No timer, no pressure.",
+  "start_url": "/index-bored.html",
+  "display": "standalone",
+  "background_color": "#0f0f1a",
+  "theme_color": "#0f0f1a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
