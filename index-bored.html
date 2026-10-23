@@ -27,6 +27,8 @@ input[type=file]{display:none}
 .tile.correct{outline:2px solid #2ed573}
 #win{position:absolute;inset:0;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;z-index:10;text-align:center;border-radius:14px;padding:20px}
 #adBanner{position:fixed;bottom:0;left:0;width:100%;height:60px;background:#000;text-align:center;border-top:1px solid #333;z-index:999;display:flex;align-items:center;justify-content:center}
+#origModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:1000;align-items:center;justify-content:center;flex-direction:column;padding:20px}
+#origModal img{max-width:90vw;max-height:70vh;border-radius:12px;border:3px solid #fff;object-fit:contain}
 </style>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-app-pub-3258857946470272" crossorigin="anonymous"></script>
 </head>
@@ -68,95 +70,19 @@ input[type=file]{display:none}
 </div>
 <p style="text-align:center;font-size:11px;opacity:.5;margin-top:10px">No timer. No pressure. Just you and the puzzle. Stay as long as you want.</p>
 
+<!-- VIEW ORIGINAL MODAL - FIXED -->
+<div id="origModal">
+<div style="font-weight:900;font-size:18px;margin-bottom:12px">ORIGINAL PICTURE</div>
+<img id="origImg" src="">
+<button class="btn btn-pink" onclick="closeHint()" style="margin-top:15px;padding:12px 28px">✖ CLOSE</button>
+</div>
+
 <div id="adBanner">
 <ins class="adsbygoogle" style="display:inline-block;width:320px;height:50px" data-ad-client="ca-app-pub-3258857946470272" data-ad-slot="8896483169"></ins>
 <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 </div>
 
 <script>
-let grid=3, tiles=[], imgUrl='https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&h=500&fit=crop', score=0, puzzlesSolved=0;
+let grid=3, tiles=[], imgUrl='https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=500&h=500&fit=crop', score=0, puzzlesSolved=0;
 const randomPics=[
-'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&h=500&fit=crop',
-'https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=500&h=500&fit=crop',
-'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500&h=500&fit=crop',
-'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=500&h=500&fit=crop'
-];
-function buildBoard(){
-  let board=document.getElementById('board');
-  board.style.gridTemplateColumns=`repeat(${grid},1fr)`;
-  board.innerHTML='<div id="win"><div style="font-size:36px">🎉 YOU DID IT!</div><div id="winText" style="font-size:14px;opacity:.9"></div><button class="btn btn-pink" onclick="hideWin();shuffle()">▶ NEXT PUZZLE</button><button class="btn btn-gold" onclick="doubleOrNothing()">🎲 DOUBLE SCORE</button></div>';
-  tiles=[]; let total=grid*grid;
-  for(let i=0;i<total;i++) tiles.push(i);
-  render();
-}
-function render(){
-  let board=document.getElementById('board');
-  let win=document.getElementById('win');
-  board.querySelectorAll('.tile').forEach(e=>e.remove());
-  tiles.forEach((val,pos)=>{
-    let div=document.createElement('div');
-    div.className='tile'+(val===grid*grid-1?' empty':'');
-    if(val!==grid*grid-1){
-      let row=Math.floor(val/grid), col=val%grid;
-      div.style.backgroundImage=`url(${imgUrl})`;
-      div.style.backgroundPosition=`${col*(100/(grid-1))}% ${row*(100/(grid-1))}%`;
-      div.style.backgroundSize=`${grid*100}% ${grid*100}%`;
-      if(val===pos) div.classList.add('correct');
-    }
-    div.onclick=()=>moveTile(pos);
-    board.appendChild(div);
-  });
-  board.appendChild(win);
-}
-function moveTile(pos){
-  let total=grid*grid;
-  let emptyPos=tiles.indexOf(total-1);
-  let r1=Math.floor(pos/grid), c1=pos%grid;
-  let r2=Math.floor(emptyPos/grid), c2=emptyPos%grid;
-  if(Math.abs(r1-r2)+Math.abs(c1-c2)===1){
-    [tiles[pos], tiles[emptyPos]]=[tiles[emptyPos], tiles[pos]];
-    render(); checkWin();
-  }
-}
-function shuffle(){
-  let total=grid*grid;
-  for(let i=0;i<300;i++){
-    let emptyPos=tiles.indexOf(total-1);
-    let opts=[]; let r=Math.floor(emptyPos/grid), c=emptyPos%grid;
-    if(r>0) opts.push(emptyPos-grid);
-    if(r<grid-1) opts.push(emptyPos+grid);
-    if(c>0) opts.push(emptyPos-1);
-    if(c<grid-1) opts.push(emptyPos+1);
-    let pick=opts[Math.floor(Math.random()*opts.length)];
-    [tiles[emptyPos], tiles[pick]]=[tiles[pick], tiles[emptyPos]];
-  }
-  render();
-}
-function setGrid(n){ grid=n; buildBoard(); shuffle(); }
-function loadImage(e){
-  let file=e.target.files[0]; if(!file) return;
-  let reader=new FileReader();
-  reader.onload=function(ev){ imgUrl=ev.target.result; buildBoard(); shuffle(); document.getElementById('msg').innerText='YOUR PICTURE IS LIVE!'; };
-  reader.readAsDataURL(file);
-}
-function randomImage(){ imgUrl=randomPics[Math.floor(Math.random()*randomPics.length)]; buildBoard(); shuffle(); }
-function updateUI(){ document.getElementById('score').innerText=score; document.getElementById('puzzles').innerText=puzzlesSolved; }
-function checkWin(){
-  for(let i=0;i<tiles.length;i++) if(tiles[i]!==i) return;
-  puzzlesSolved++; score+=100*grid;
-  document.getElementById('winText').innerHTML=`Puzzle #${puzzlesSolved} solved!<br>Score +${100*grid} = <b>${score}</b><br><span style="font-size:11px">Try another picture!</span>`;
-  document.getElementById('msg').innerText='SOLVED! 🎉';
-  document.getElementById('win').style.display='flex';
-  updateUI();
-}
-function hideWin(){ document.getElementById('win').style.display='none'; }
-function showHint(){ window.open(imgUrl,'_blank'); }
-function solveAuto(){ tiles=tiles.map((_,i)=>i); render(); checkWin(); }
-function doubleOrNothing(){
-  if(Math.random()>0.5){ score*=2; document.getElementById('msg').innerText='DOUBLED! '+score+' 🎉'; } else { score=0; document.getElementById('msg').innerText='OOPS LOST IT ALL 😭'; }
-  updateUI(); hideWin();
-}
-buildBoard(); shuffle();
-</script>
-</body>
-</html>
+'https://images.unsplash.com/photo-1573865526739-10659fec78a
