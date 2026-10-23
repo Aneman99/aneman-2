@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "za.co.anemansystems.twa",
+        "sha256_cert_fingerprints": ["2A:79:1E:0A:1F:57:AB:B7:5D:E4:16:A1:8E:9E:17:69:66:72:78:29:88:75:FC:E2:4A:E1:95:B1:FD:9A:B0:C2"]
+      }
+    }]
