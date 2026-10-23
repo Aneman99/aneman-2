@@ -3,60 +3,160 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>BORED - Beat Boredom</title>
+<title>BORED - Picture Puzzle</title>
 <meta name="theme-color" content="#0f0f1a">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{background:#0f0f1a;color:#fff;font-family:'Segoe UI',system-ui,sans-serif;overflow:hidden;height:100vh;display:flex;flex-direction:column}
-.top{display:flex;justify-content:space-between;padding:12px 16px;font-weight:800;font-size:14px}
-.top span{background:#1e1e35;padding:6px 10px;border-radius:20px}
-#timer{color:#ff4757} #combo{color:#ffa502} #score{color:#2ed573}
-#board{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px;max-width:420px;margin:0 auto;width:100%}
-.tile{border-radius:20px;cursor:pointer;transition:.15s;box-shadow:0 6px 0 rgba(0,0,0,.3)}
-.tile:active{transform:scale(.95)}
-.tile.flash{filter:brightness(2);transform:scale(1.05)}
-#t0{background:#ff6b81} #t1{background:#ffa502} #t2{background:#2ed573} #t3{background:#1e90ff}
-#msg{text-align:center;font-size:22px;font-weight:900;min-height:32px}
-#sub{text-align:center;font-size:13px;opacity:.6;margin-bottom:8px}
-#startBtn{background:linear-gradient(90deg,#ff4757,#ffa502);border:none;color:#fff;font-weight:900;font-size:18px;padding:16px 32px;border-radius:30px;margin:10px auto;cursor:pointer}
-#doubleBtn{background:#1e1e35;color:#ffa502;border:2px solid #ffa502;padding:10px 20px;border-radius:20px;font-weight:800;cursor:pointer;display:none;margin:5px auto}
-#adBanner{height:60px;background:#000;text-align:center;border-top:1px solid #222;overflow:hidden}
+body{background:#0f0f1a;color:#fff;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;padding-bottom:65px}
+.top{display:flex;justify-content:center;gap:10px;padding:12px 14px;font-weight:800;font-size:13px}
+.top span{background:#1e1e35;padding:8px 14px;border-radius:20px}
+#score{color:#2ed573} #puzzles{color:#ffa502}
+#msg{text-align:center;font-size:24px;font-weight:900;min-height:30px;letter-spacing:.5px}
+#sub{text-align:center;font-size:13px;opacity:.6;margin-bottom:12px}
+.controls{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:0 12px}
+.btn{border:none;padding:11px 18px;border-radius:20px;font-weight:800;cursor:pointer;font-size:13px}
+.btn-pink{background:linear-gradient(90deg,#ff4757,#ffa502);color:#fff;box-shadow:0 4px 15px rgba(255,71,87,.3)}
+.btn-dark{background:#1e1e35;color:#fff;border:1px solid #333}
+.btn-gold{background:#1e1e35;color:#ffa502;border:2px solid #ffa502}
+input[type=file]{display:none}
+#previewWrap{width:100%;max-width:420px;margin:12px auto;padding:0 12px}
+#board{width:100%;aspect-ratio:1;display:grid;gap:3px;background:#1e1e35;padding:3px;border-radius:14px;overflow:hidden;position:relative}
+.tile{background-size:400px 400px;cursor:pointer;border-radius:6px;transition:.15s}
+.tile:active{transform:scale(.97)}
+.tile.empty{background:#0f0f1a!important;cursor:default}
+.tile.correct{outline:2px solid #2ed573}
+#win{position:absolute;inset:0;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;z-index:10;text-align:center;border-radius:14px;padding:20px}
+#adBanner{position:fixed;bottom:0;left:0;width:100%;height:60px;background:#000;text-align:center;border-top:1px solid #333;z-index:999;display:flex;align-items:center;justify-content:center}
 </style>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-app-pub-3258857946470272" crossorigin="anonymous"></script>
 </head>
 <body>
 <div class="top">
-<span>⏱ <b id="timer">30</b>s</span>
-<span>🔥 COMBO <b id="combo">x1</b></span>
-<span>🏆 <b id="score">0</b></span>
+<span>🏆 SCORE <b id="score">0</b></span>
+<span>🧩 SOLVED <b id="puzzles">0</b></span>
 </div>
 <div id="msg">BORED?</div>
-<div id="sub">Watch pattern. Repeat it. Beat the clock.</div>
-<div id="board">
-<div class="tile" id="t0" onclick="tap(0)"></div>
-<div class="tile" id="t1" onclick="tap(1)"></div>
-<div class="tile" id="t2" onclick="tap(2)"></div>
-<div class="tile" id="t3" onclick="tap(3)"></div>
+<div id="sub">Add any picture. Chill. Solve it.</div>
+
+<div class="controls">
+<label class="btn btn-pink" for="fileInput">📸 ADD YOUR PICTURE</label>
+<input type="file" id="fileInput" accept="image/*" onchange="loadImage(event)">
 </div>
-<button id="startBtn" onclick="startGame()">▶ PLAY BORED</button>
-<button id="doubleBtn" onclick="doubleOrNothing()">🎲 DOUBLE OR NOTHING (x2 Score)</button>
+
+<div class="controls" style="margin-top:8px">
+<button class="btn btn-dark" onclick="setGrid(3)">3x3 EASY</button>
+<button class="btn btn-dark" onclick="setGrid(4)">4x4 HARD</button>
+<button class="btn btn-dark" onclick="setGrid(5)">5x5 PRO</button>
+<button class="btn btn-gold" onclick="shuffle()">🔀 SHUFFLE</button>
+</div>
+
+<div id="previewWrap">
+<div id="board">
+<div id="win">
+<div style="font-size:36px">🎉 YOU DID IT!</div>
+<div id="winText" style="font-size:14px;opacity:.9"></div>
+<button class="btn btn-pink" onclick="hideWin();shuffle()">▶ NEXT PUZZLE</button>
+<button class="btn btn-gold" onclick="doubleOrNothing()">🎲 DOUBLE SCORE</button>
+</div>
+</div>
+</div>
+
+<div class="controls">
+<button class="btn btn-dark" onclick="showHint()">💡 VIEW ORIGINAL</button>
+<button class="btn btn-dark" onclick="solveAuto()">✅ AUTO SOLVE</button>
+<button class="btn btn-dark" onclick="randomImage()">🎲 RANDOM PIC</button>
+</div>
+<p style="text-align:center;font-size:11px;opacity:.5;margin-top:10px">No timer. No pressure. Just you and the puzzle. Stay as long as you want.</p>
+
 <div id="adBanner">
 <ins class="adsbygoogle" style="display:inline-block;width:320px;height:50px" data-ad-client="ca-app-pub-3258857946470272" data-ad-slot="8896483169"></ins>
 <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 </div>
+
 <script>
-let seq=[], userSeq=[], score=0, level=1, timerInt, timeLeft=30, combo=1, playing=false;
-let sounds=[220,330,440,550];
-function playTone(i){try{let a=new (window.AudioContext||window.webkitAudioContext)();let o=a.createOscillator();o.frequency.value=sounds[i];o.connect(a.destination);o.start();o.stop(a.currentTime+0.15)}catch(e){}}
-function flash(i){let el=document.getElementById('t'+i);el.classList.add('flash');playTone(i);setTimeout(()=>el.classList.remove('flash'),300)}
-function showPattern(){let i=0;let int=setInterval(()=>{flash(seq[i]);i++;if(i>=seq.length)clearInterval(int)},500)}
-function startGame(){seq=[];userSeq=[];score=0;level=1;combo=1;timeLeft=30;playing=true;document.getElementById('startBtn').style.display='none';document.getElementById('doubleBtn').style.display='none';updateUI();nextLevel();startTimer()}
-function startTimer(){clearInterval(timerInt);timerInt=setInterval(()=>{timeLeft--;document.getElementById('timer').innerText=timeLeft;if(timeLeft<=0)gameOver()},1000)}
-function nextLevel(){userSeq=[];document.getElementById('msg').innerText='LEVEL '+level+' - WATCH!';seq.push(Math.floor(Math.random()*4));setTimeout(showPattern,600)}
-function tap(i){if(!playing)return;flash(i);userSeq.push(i);if(userSeq[userSeq.length-1]!==seq[userSeq.length-1]){gameOver();return}if(userSeq.length===seq.length){score+=10*combo*level;combo++;if(combo>8)combo=8;level++;updateUI();document.getElementById('msg').innerText='NICE! +'+(10*combo)+' 🔥';setTimeout(nextLevel,800)}}
-function updateUI(){document.getElementById('score').innerText=score;document.getElementById('combo').innerText='x'+combo;document.getElementById('timer').innerText=timeLeft}
-function gameOver(){playing=false;clearInterval(timerInt);document.getElementById('msg').innerText='GAME OVER! Score: '+score;document.getElementById('sub').innerText='Your brain got BORED? Try again!';document.getElementById('startBtn').style.display='block';document.getElementById('startBtn').innerText='↻ PLAY AGAIN';document.getElementById('doubleBtn').style.display='block';}
-function doubleOrNothing(){if(Math.random()>0.5){score*=2;document.getElementById('msg').innerText='DOUBLED! '+score+' 🎉';}else{score=0;document.getElementById('msg').innerText='LOST IT ALL! 😭';}updateUI();document.getElementById('doubleBtn').style.display='none'}
+let grid=3, tiles=[], imgUrl='https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&h=500&fit=crop', score=0, puzzlesSolved=0;
+const randomPics=[
+'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&h=500&fit=crop',
+'https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=500&h=500&fit=crop',
+'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500&h=500&fit=crop',
+'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=500&h=500&fit=crop'
+];
+function buildBoard(){
+  let board=document.getElementById('board');
+  board.style.gridTemplateColumns=`repeat(${grid},1fr)`;
+  board.innerHTML='<div id="win"><div style="font-size:36px">🎉 YOU DID IT!</div><div id="winText" style="font-size:14px;opacity:.9"></div><button class="btn btn-pink" onclick="hideWin();shuffle()">▶ NEXT PUZZLE</button><button class="btn btn-gold" onclick="doubleOrNothing()">🎲 DOUBLE SCORE</button></div>';
+  tiles=[]; let total=grid*grid;
+  for(let i=0;i<total;i++) tiles.push(i);
+  render();
+}
+function render(){
+  let board=document.getElementById('board');
+  let win=document.getElementById('win');
+  board.querySelectorAll('.tile').forEach(e=>e.remove());
+  tiles.forEach((val,pos)=>{
+    let div=document.createElement('div');
+    div.className='tile'+(val===grid*grid-1?' empty':'');
+    if(val!==grid*grid-1){
+      let row=Math.floor(val/grid), col=val%grid;
+      div.style.backgroundImage=`url(${imgUrl})`;
+      div.style.backgroundPosition=`${col*(100/(grid-1))}% ${row*(100/(grid-1))}%`;
+      div.style.backgroundSize=`${grid*100}% ${grid*100}%`;
+      if(val===pos) div.classList.add('correct');
+    }
+    div.onclick=()=>moveTile(pos);
+    board.appendChild(div);
+  });
+  board.appendChild(win);
+}
+function moveTile(pos){
+  let total=grid*grid;
+  let emptyPos=tiles.indexOf(total-1);
+  let r1=Math.floor(pos/grid), c1=pos%grid;
+  let r2=Math.floor(emptyPos/grid), c2=emptyPos%grid;
+  if(Math.abs(r1-r2)+Math.abs(c1-c2)===1){
+    [tiles[pos], tiles[emptyPos]]=[tiles[emptyPos], tiles[pos]];
+    render(); checkWin();
+  }
+}
+function shuffle(){
+  let total=grid*grid;
+  for(let i=0;i<300;i++){
+    let emptyPos=tiles.indexOf(total-1);
+    let opts=[]; let r=Math.floor(emptyPos/grid), c=emptyPos%grid;
+    if(r>0) opts.push(emptyPos-grid);
+    if(r<grid-1) opts.push(emptyPos+grid);
+    if(c>0) opts.push(emptyPos-1);
+    if(c<grid-1) opts.push(emptyPos+1);
+    let pick=opts[Math.floor(Math.random()*opts.length)];
+    [tiles[emptyPos], tiles[pick]]=[tiles[pick], tiles[emptyPos]];
+  }
+  render();
+}
+function setGrid(n){ grid=n; buildBoard(); shuffle(); }
+function loadImage(e){
+  let file=e.target.files[0]; if(!file) return;
+  let reader=new FileReader();
+  reader.onload=function(ev){ imgUrl=ev.target.result; buildBoard(); shuffle(); document.getElementById('msg').innerText='YOUR PICTURE IS LIVE!'; };
+  reader.readAsDataURL(file);
+}
+function randomImage(){ imgUrl=randomPics[Math.floor(Math.random()*randomPics.length)]; buildBoard(); shuffle(); }
+function updateUI(){ document.getElementById('score').innerText=score; document.getElementById('puzzles').innerText=puzzlesSolved; }
+function checkWin(){
+  for(let i=0;i<tiles.length;i++) if(tiles[i]!==i) return;
+  puzzlesSolved++; score+=100*grid;
+  document.getElementById('winText').innerHTML=`Puzzle #${puzzlesSolved} solved!<br>Score +${100*grid} = <b>${score}</b><br><span style="font-size:11px">Try another picture!</span>`;
+  document.getElementById('msg').innerText='SOLVED! 🎉';
+  document.getElementById('win').style.display='flex';
+  updateUI();
+}
+function hideWin(){ document.getElementById('win').style.display='none'; }
+function showHint(){ window.open(imgUrl,'_blank'); }
+function solveAuto(){ tiles=tiles.map((_,i)=>i); render(); checkWin(); }
+function doubleOrNothing(){
+  if(Math.random()>0.5){ score*=2; document.getElementById('msg').innerText='DOUBLED! '+score+' 🎉'; } else { score=0; document.getElementById('msg').innerText='OOPS LOST IT ALL 😭'; }
+  updateUI(); hideWin();
+}
+buildBoard(); shuffle();
 </script>
 </body>
 </html>
